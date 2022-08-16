@@ -2,9 +2,9 @@
 unix/linux command line tools for working with variable length self-synchronizing codes
 
 
-Currently only tools for the raspberry pi are provided... I intend to provide the sources 
+Currently binary executables for Raspberry pi are available.  I intend to provide the sources 
 for these tools shortly so that they can be compiled for use in any UNIX or linux environment.
-These tools enable on eto create and work with varibale-length self synchronizing T-codes.
+These tools enable one to create and work with the varibale-length self-synchronizing T-codes.
 
 The process of constructiong the codes can be approached in several ways.
 
