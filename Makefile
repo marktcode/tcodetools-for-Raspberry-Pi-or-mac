@@ -60,10 +60,10 @@ udp_send: udp_send.c
 udp_listen: udp_listen.c 
 	$(CC) udp_listen.c -o udp_listen
 
-t_pack: t_pack.c 
+t_pack: t_pack.c $(INCS)
 	$(CC) t_pack.c -o t_pack
 
-t_unpack: t_unpack.c 
+t_unpack: t_unpack.c $(INCS)
 	$(CC) t_unpack.c -o t_unpack
 
 tc_fxdlst: tc_fxdlst.c $(INCS)
