@@ -9,15 +9,36 @@ case $# in
     exit ;;
 esac
 
+echo "output file: $FILE" 
+
 tc_new -f cmprsalpha > /dev/null
 USER=42771136134044521272115527460050466
 tc_decomp -f cmprsalpha `echo $USER | rev | awk '{ printf "obase=2;ibase=8; %s\n", $1}' | bc | tr -d "\n\\\" 2> /dev/null | rev` 
 
+echo "maximal code: `tc_param -f cmprsalpha | tail -1`"
+
 #while true 
 #do
-read -p ">>>>: " MESSAGE
+#read -p "Enter message:" MESSAGE
+MESSAGE="This is a test."
+echo ">>>>: $MESSAGE
+"
 if test "$MESSAGE"
 then
+
+STRING=`echo "$MESSAGE" | sed -e '/ \. /s// qspc qprd /g' -e '/\. /s// qprd /g' -e '/\./s// qprd qbs /g' \
+-e '/ , /s// qspc qcma /g' -e '/, /s// qcma /g' -e '/,/s// qcma qbs /g' \
+-e '/ \\$ /s// qdlr /g' -e '/\\$ /s// qbs qdlr /g' -e '/\\$/s// qbs qdlr qbs /g' \
+-e '/ \\: /s// qcln /g' -e '/\\: /s// qbs qcln /g' -e '/\\:/s// qbs qcln qbs /g' \
+-e '/ \\\\ /s// qbksls /g' -e '/\\\\ /s// qbs qbksls /g' -e '/\\\\/s// qbs qbksls qbs /g' \
+-e '/ " /s// qspc qdqte /g' -e '/ "/s// qdqte qbs /g' -e '/"/s// qdqte qbs /g' \
+-e "/ ' /s// qspc qsqte /g" -e "/ '/s// qsqte qbs /g" -e "s/'/ qbs qsqte qbs /g" \
+-e '/       /s// qspcspcspcspcspcspc /g' -e '/      /s// qspcspcspcspcspc /g' -e '/     /s// qspcspcspcspc /g' -e '/    /s// qspcspcspc /g' -e '/   /s// qspcspc /g' -e '/  /s// qspc /g' \
+-e '/ qbs $/s///'`
+echo "looking up string:
+$STRING
+"
+
 
 WRDCNT=0
 for WORD in `echo "$MESSAGE" | sed -e '/ \. /s// qspc qprd /g' -e '/\. /s// qprd /g' -e '/\./s// qprd qbs /g' \
@@ -68,11 +89,50 @@ wc -c < $FILE | tr -d " \n"
 echo " (bytes)"
 fi
 #done
-#cat /tmp/fullstring
-echo ""
-rm cmprsalpha
-rm /tmp/fullstring
+cat /tmp/coding
+cat /tmp/fullstring
 rm /tmp/coding
+rm /tmp/fullstring
+echo "
+
+Now for the decompression:"
+
+STRING=`cat $FILE | hexdump -v -e '/1 "%2x"' | fold -w 2 | tr " " "0" | tr -d "\n"  | awk '{ printf "obase=2; ibase=16; %s\n", toupper($0);}' | bc | tr -d "\n\\\" 2> /dev/null \
+ | awk '{split(substr($0,2,4),a,""); n=a[1]*4+a[2]*2+a[3]; if (n != 0) printf "%s",substr($0,5,length($0)-4 -(8-n)); else printf "%s",substr($0,5,length($0)-4)}'`
+
+echo "As trimmed:"
+echo $STRING
+tc_dec -f cmprsalpha "$STRING" | awk '{print "bzcat 3613404452.dict.bz2 | grep -w \""$2"$\" "}' | sh 
+
+tc_dec -f cmprsalpha "$STRING" | awk '{print "bzcat 3613404452.dict.bz2 | grep -w \""$2"$\" "}' | sh | awk '{count++;
+if (count ==1) {qfstcap=1; qdqte=0; printf "\a<<<<: "} 
+if ($1=="qbs") bs=1;
+else if ($1=="qallcap") {capall =1; qfstcap=0;}
+else if ($1=="qfstcap") {capall =0; qfstcap=1;}
+else if ($1=="qlc") {capall =0; qfstcap=0;}
+else 
+	{
+	n=split($1,a,"");
+if (bs==1) { printf "\b"; bs=0;}
+if (capall==1) {printf "%s ",toupper($1); qfstcap = capall = 0;}
+else if (qfstcap==1) {printf "%c%s ",toupper(a[1]),substr($1,2,n); qfstcap=0}
+else if ($1=="qcma") {printf "\b, ";}
+else if ($1=="qprd") {printf "\b. ";}
+else if ($1=="qspc") {printf " ";}
+else if ($1=="qdlr") {printf "$ ";}
+else if ($1=="qcln") {printf ": ";} 
+else if ($1=="qbksls") {printf "\\ ";} 
+else if ($1=="qspcspc") {printf "  ";}
+else if ($1=="qspcspcspc") {printf "   ";}
+else if ($1=="qspcspcspcspc") {printf "    ";}
+else if ($1=="qspcspcspcspcspc") {printf "     ";}
+else if ($1=="qspcspcspcspcspcspc") {printf "      ";}
+else if ($1=="qsqte") {printf "%c ",39;}
+else if ($1=="qdqte") {if (qdqte==0) {printf "\" "; qdqte=1;} else {printf "\b\" "; qdqte=0;}}
+else printf "%s ",$1
+    }
+}'
+
 
 exit 1
 
