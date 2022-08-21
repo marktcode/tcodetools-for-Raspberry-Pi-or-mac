@@ -17,7 +17,7 @@ FILE *fp;
 
 /*  search arguments for parameters */
 
-	ShowHelp(argc, argv, "usage: pack filename", TRUE);
+	ShowHelp(argc, argv, "usage: t_pack filename", TRUE);
 
 	if (ArgsLeft(argc, argv) > 1) {
 		printf ("error: too many arguments passed\n");
