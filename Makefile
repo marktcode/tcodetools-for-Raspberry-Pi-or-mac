@@ -5,7 +5,7 @@ prefix = /usr/local
 
 INCS = Incs.c StructInc.c AlphabetInc.c DeplnInc.c CodeInc.c ArgInc.c ComplexInc.c
 
-SRCS = tc_new tc_aug tc_deaug tc_reaug tc_param tc_sets tc_list tc_rank tc_enc tc_dec tc_decomp tc_strings tc_struct tc_qtcie udp_send udp_listen t_pack t_unpack tc_fxdlst
+SRCS = tc_new tc_aug tc_deaug tc_reaug tc_param tc_sets tc_list tc_rank tc_enc tc_dec tc_decomp tc_strings tc_struct t_calc t_qtp t_sqtp t_qtc t_qtcie udp_send udp_listen t_pack t_unpack tc_fxdlst
 
 OBJS = $(SRCS:.c=.o)
 
@@ -60,17 +60,29 @@ udp_send: udp_send.c
 udp_listen: udp_listen.c 
 	$(CC) udp_listen.c -o udp_listen
 
-t_pack: t_pack.c 
+t_pack: t_pack.c $(INCS)
 	$(CC) t_pack.c -o t_pack
 
-t_unpack: t_unpack.c 
+t_unpack: t_unpack.c $(INCS)
 	$(CC) t_unpack.c -o t_unpack
 
 tc_fxdlst: tc_fxdlst.c $(INCS)
 	$(CC) tc_fxdlst.c -o tc_fxdlst
 
-tc_qtcie: tc_qtcie.c 
-	$(CC) tc_qtcie.c -o tc_qtcie
+t_calc: t_calc.c 
+	$(CC) t_calc.c -lm -o t_calc
+
+t_qtp: t_qtp.c 
+	$(CC) t_qtp.c  -lm -o t_qtp
+
+t_sqtp: t_sqtp.c 
+	$(CC) t_sqtp.c -lm -o t_sqtp
+
+t_qtc: t_qtc.c 
+	$(CC) t_qtc.c  -lm -o t_qtc
+
+t_qtcie: t_qtcie.c 
+	$(CC) t_qtcie.c  -lm -o t_qtcie
 
 
 clean:
