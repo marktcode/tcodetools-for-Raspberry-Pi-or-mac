@@ -133,6 +133,7 @@ else printf "%s ",$1
     }
 }'
 
+rm cmprsalpha
 
 exit 1
 
