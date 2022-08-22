@@ -20,8 +20,11 @@ tc_decomp -f dcmprsalpha `echo $USER | rev | awk '{ printf "obase=2;ibase=8; %s\
 #while true
 #do
 echo ""
-STRING=`cat $FILE | hexdump -v -e '/1 "%2x"' | fold -w 2 | tr " " "0" | tr -d "\n"  | awk '{ printf "obase=2; ibase=16; %s\n", toupper($0);}' | bc | tr -d "\n\\\" 2> /dev/null \
- | awk '{split(substr($0,2,4),a,""); n=a[1]*4+a[2]*2+a[3]; if (n != 0) printf "%s",substr($0,5,length($0)-4 -(8-n)); else printf "%s",substr($0,5,length($0)-4)}'`
+STRING=`t_unpack -f $FILE | tr -d "\n\\\" 2> /dev/null \
+| awk '{split(substr($0,2,4),a,""); n=a[1]*4+a[2]*2+a[3]; if (n != 0) printf "%s",substr($0,5,length($0)-4 -(8-n)); else printf "%s",substr($0,5,length($0)-4)}'`
+
+#STRING=`cat $FILE | hexdump -v -e '/1 "%2x"' | fold -w 2 | tr " " "0" | tr -d "\n"  | awk '{ printf "obase=2; ibase=16; %s\n", toupper($0);}' | bc | tr -d "\n\\\" 2> /dev/null \
+# | awk '{split(substr($0,2,4),a,""); n=a[1]*4+a[2]*2+a[3]; if (n != 0) printf "%s",substr($0,5,length($0)-4 -(8-n)); else printf "%s",substr($0,5,length($0)-4)}'`
 
 #echo $STRING
 #tc_dec -f dcmprsalpha "$STRING" | awk '{print "bzcat 3613404452.dict.bz2 | grep -w \""$2"$\" "}' | sh 
