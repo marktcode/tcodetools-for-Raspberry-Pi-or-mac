@@ -58,9 +58,8 @@ else
    LOOK=`awk -v "word=$LOOK" 'BEGIN{printf "%s",substr(word,1,length(word)-1);}'`
 fi
 done
-done | tee /tmp/coding | awk '{printf "tc_enc -f cmprsalpha %d\n",$2; fflush();}' | sh | awk '{ n=(length($0)+4) % 8; printf "1%d%d%d%s", int(n/4 % 2),int(n/2 % 2),int(n % 2),$0 ; if (n) {for (j=n; j <= 7; j++)  printf "0"; }}' | tee /tmp/fullstring \
-| awk '{printf "obase=256; ibase=2; %s\n",$0}'  | bc | tr -d "\n" | tr -d '\' 2> /dev/null | tr " " "\n" \
-| awk '{if (length($1)) printf "%c",$1}'  | tee  $FILE  >/dev/null # to be recoded as morse code
+done | tee /tmp/coding | awk '{printf "tc_enc -f cmprsalpha %d\n",$2; fflush();}' | sh | awk '{ n=(length($0)+4) % 8; printf "1%d%d%d%s", int(n/4 % 2),int(n/2 % 2),int(n % 2),$0 ; if (n) {for (j=n; j <= 7; j++)  printf "0"; }}' > /tmp/fullstring 
+t_pack /tmp/fullstring >  $FILE  # to be recoded as morse code
 echo "message size " | tr -d "\n"
 echo "$MESSAGE" | wc -c | tr -d " \n"
 echo " (chars),  Outgoing message " | tr -d "\n"
