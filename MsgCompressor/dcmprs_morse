@@ -1,0 +1,79 @@
+#!/bin/sh
+#decompress filename
+PATH=$PATH:.:..
+
+#case $# in
+#1) FILE=$1
+# if ! test -f "$FILE"
+# then echo "file: \"""$FILE"\"" doesn't exist"
+# exit
+# fi;;
+#0) echo usage: cmprs filename
+#    exit ;;
+#esac
+
+
+tc_new -f dcmprsalpha > /dev/null
+USER=42771136134044521272115527460050466
+tc_decomp -f dcmprsalpha `echo $USER | rev | awk '{ printf "obase=2;ibase=8; %s\n", $1}' | bc | tr -d "\n\\\" 2> /dev/null | rev`
+
+#while true
+#do
+read -p ">>>>: " MESSAGE
+if test "$MESSAGE"
+then
+
+for i in `echo $MESSAGE | tr -d " ." | awk '{printf "%s",tolower($1);}' | fold -w 1`
+do grep $i enigma.tex 
+done | awk '{printf "%s",$1; fflush();}' > /tmp/receivedstring
+LEN=`wc -c /tmp/receivedstring | awk '{if (($1/8 - int($1/8))== 0) print 8*(int($1/8)-1); else print 8*int($1/8)}'`
+
+STRING=`head -c $LEN /tmp/receivedstring | tr -d "\n\\\" 2> /dev/null \
+| awk '{split(substr($0,2,4),a,""); n=a[1]*4+a[2]*2+a[3]; if (n != 0) printf "%s",substr($0,5,length($0)-4 -(8-n)); else printf "%s",substr($0,5,length($0)-4)}'`
+
+#STRING=`cat $FILE | hexdump -v -e '/1 "%2x"' | fold -w 2 | tr " " "0" | tr -d "\n"  | awk '{ printf "obase=2; ibase=16; %s\n", toupper($0);}' | bc | tr -d "\n\\\" 2> /dev/null \
+# | awk '{split(substr($0,2,4),a,""); n=a[1]*4+a[2]*2+a[3]; if (n != 0) printf "%s",substr($0,5,length($0)-4 -(8-n)); else printf "%s",substr($0,5,length($0)-4)}'`
+
+#echo $STRING
+#tc_dec -f dcmprsalpha "$STRING" | awk '{print "bzcat 3613404452.dict.bz2 | grep -w \""$2"$\" "}' | sh 
+#exit
+
+tc_dec -f dcmprsalpha "$STRING" | awk '{print "bzcat 3613404452.dict.bz2 | grep -w \""$2"$\" "}' | sh | awk '{count++;
+if (count ==1) {qfstcap=1; qdqte=0; printf "\a<<<<: "} 
+if ($1=="qbs") bs=1;
+else if ($1=="qallcap") {capall =1; qfstcap=0;}
+else if ($1=="qfstcap") {capall =0; qfstcap=1;}
+else if ($1=="qlc") {capall =0; qfstcap=0;}
+else 
+	{
+	n=split($1,a,"");
+if (bs==1) { printf "\b"; bs=0;}
+if (capall==1) {printf "%s ",toupper($1); qfstcap = capall = 0;}
+else if (qfstcap==1) {printf "%c%s ",toupper(a[1]),substr($1,2,n); qfstcap=0}
+else if ($1=="qcma") {printf "\b, ";}
+else if ($1=="qprd") {printf "\b. ";}
+else if ($1=="qspc") {printf " ";}
+else if ($1=="qdlr") {printf "$ ";}
+else if ($1=="qcln") {printf ": ";} 
+else if ($1=="qbksls") {printf "\\ ";} 
+else if ($1=="qspcspc") {printf "  ";}
+else if ($1=="qspcspcspc") {printf "   ";}
+else if ($1=="qspcspcspcspc") {printf "    ";}
+else if ($1=="qspcspcspcspcspc") {printf "     ";}
+else if ($1=="qspcspcspcspcspcspc") {printf "      ";}
+else if ($1=="qsqte") {printf "%c ",39;}
+else if ($1=="qdqte") {if (qdqte==0) {printf "\" "; qdqte=1;} else {printf "\b\" "; qdqte=0;}}
+else printf "%s ",$1
+    }
+}'
+awk 'BEGIN{printf "\a"; }'
+sleep .1
+awk 'BEGIN{printf "\a"; }'
+echo "\n"
+#done
+
+rm dcmprsalpha 
+fi
+
+exit 1
+
