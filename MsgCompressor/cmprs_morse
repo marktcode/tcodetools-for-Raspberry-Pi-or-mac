@@ -1,0 +1,89 @@
+#!/bin/sh
+#compress a text message.
+PATH=$PATH:.:..
+
+# check number of arguments
+#case $# in
+#1) FILE=$1;;
+#0) echo usage: cmprs file name
+#    exit ;;
+#esac
+
+tc_new -f cmprsalpha > /dev/null
+USER=42771136134044521272115527460050466
+tc_decomp -f cmprsalpha `echo $USER | rev | awk '{ printf "obase=2;ibase=8; %s\n", $1}' | bc | tr -d "\n\\\" 2> /dev/null | rev` 
+
+#while true 
+#do
+read -p ">>>>: " MESSAGE
+if test "$MESSAGE"
+then
+
+WRDCNT=0
+for WORD in `echo "$MESSAGE" | sed -e '/ \. /s// qspc qprd /g' -e '/\. /s// qprd /g' -e '/\./s// qprd qbs /g' \
+-e '/ , /s// qspc qcma /g' -e '/, /s// qcma /g' -e '/,/s// qcma qbs /g' \
+-e '/ \\$ /s// qdlr /g' -e '/\\$ /s// qbs qdlr /g' -e '/\\$/s// qbs qdlr qbs /g' \
+-e '/ \\: /s// qcln /g' -e '/\\: /s// qbs qcln /g' -e '/\\:/s// qbs qcln qbs /g' \
+-e '/ \\\\ /s// qbksls /g' -e '/\\\\ /s// qbs qbksls /g' -e '/\\\\/s// qbs qbksls qbs /g' \
+-e '/ " /s// qspc qdqte /g' -e '/ "/s// qdqte qbs /g' -e '/"/s// qdqte qbs /g' \
+-e "/ ' /s// qspc qsqte /g" -e "/ '/s// qsqte qbs /g" -e "s/'/ qbs qsqte qbs /g" \
+-e '/       /s// qspcspcspcspcspcspc /g' -e '/      /s// qspcspcspcspcspc /g' -e '/     /s// qspcspcspcspc /g' -e '/    /s// qspcspcspc /g' -e '/   /s// qspcspc /g' -e '/  /s// qspc /g' \
+-e '/ qbs $/s///'`
+do 
+WRDCNT=`echo $WRDCNT+1 | bc`
+echo $WORD | awk -v "wrdcnt=$WRDCNT"  '{n=split($1,a,""); 
+if ((wrdcnt == 1) && (a[1] != toupper(a[1])) && (a[n] == tolower(a[n])) ) printf "lookupWordbz2 qlc";
+else if ((a[1] != tolower(a[1]) && (a[n] != tolower(a[n])))) printf "lookupWordbz2 qallcap";
+else if (wrdcnt > 1) {
+      if ((a[1] != tolower(a[1]) && (a[n] == tolower(a[n])))) printf "lookupWordbz2 qfstcap"; 
+      else if ((a[1] != tolower(a[1]) && (a[n] != tolower(a[n])))) printf "lookupWordbz2 qallcap";
+      } 
+}' | sh
+WORD=`awk -v "word=$WORD" 'BEGIN{printf "%s",tolower(word);}'`
+LOOK=$WORD
+while true 
+do
+STRING=`lookupWordbz2 $LOOK`
+if test "$?" -eq "1" 
+then echo "$STRING";
+   if test "$LOOK" = "$WORD"
+   then break;
+   else 
+   # send a back space
+       lookupWordbz2 qbs
+       LOOK=`awk -v "word=$WORD" -v "look=$LOOK" 'BEGIN{printf "%s",substr(word,length(look)+1,length(word));}'`
+       WORD=$LOOK       
+   fi
+else
+   LOOK=`awk -v "word=$LOOK" 'BEGIN{printf "%s",substr(word,1,length(word)-1);}'`
+fi
+done
+done | tee /tmp/coding | awk '{printf "tc_enc -f cmprsalpha %d\n",$2; fflush();}' | sh | awk '{ n=(length($0)+4) % 8; printf "1%d%d%d%s", int(n/4 % 2),int(n/2 % 2),int(n % 2),$0 ; if (n) {for (j=n; j <= 7; j++)  printf "0"; }}' > /tmp/fullstring 
+#t_pack /tmp/fullstring >  $FILE  # to be recoded as morse code
+#echo "message size " | tr -d "\n"
+#echo "$MESSAGE" | wc -c | tr -d " \n"
+#echo " (chars),  Outgoing message " | tr -d "\n"
+#wc -c < $FILE | tr -d " \n" 
+#echo " (bytes)"
+fi
+#done
+#cat /tmp/fullstring
+
+STRING=`cat /tmp/fullstring`
+echo -n " " > /tmp/shortms
+tc_new -f morsealpha > /dev/null
+tc_decomp -f morsealpha 111100000
+for i in `tc_dec -f morsealpha $STRING"11100000" | awk '{for (i=1; i <=$3; i++) print $1}'`
+do grep "^$i" enigma.tex 
+done | awk '{i++; printf "%c",$3; if (i==5) {i=0; printf " ";}}' >> /tmp/shortms
+echo '.' >>  /tmp/shortms
+
+cat /tmp/shortms
+echo ""
+
+rm cmprsalpha morsealpha
+rm /tmp/fullstring
+rm /tmp/coding
+
+exit 1
+
