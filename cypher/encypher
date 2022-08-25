@@ -1,0 +1,138 @@
+#!/bin/bash
+
+#The philosphy behind this cypher... is that it should be based on very standard coding processes... that are accessible to all..
+#It shoudl exploit the unlimited precision of bc and that the key might ultimately  exploit the variability of tcode sets avaialable
+#and the variable precision in setting the scale of the bc calculation on the logistic map... the key then comprises a string that decomposes
+#to a tcode set used in the encoding of the logistic table entries... the entries in the block table produced by running the bc calculation
+#propagating forward the r=4 trajectory then  forms a running cypher... with presumably the strength approaching a one time pad.
+
+# the idea is that in the absence of the key, but armed with all other knowledge of the processes involved i.e. the algorithm for the encryption and decryption
+#the encoded message will remain unbreakable. It is very slow deliberately to make brute force cracking essentially impractical.
+
+#the input is text on the line... no working files are saved to disk except the encrypted file... 
+
+######################### encypher ###########################
+#cd ~/CYPHER/
+
+OCTAL=0; # allows for an octal message to be handled
+DATESTAMP=`date`
+
+if test "$#" -eq "0"
+then
+       echo "usage: nn [-o][-p][-k]"
+       exit 1
+fi
+
+for i in "$@"
+do
+case "$i" in
+  "-p") 
+        read -s -p "Passphrase: " PHRASE
+        echo $PHRASE | t_unpack  | awk '{printf "obase=8; ibase=2; %s\n",$1}' | bc -l > encodeseed
+   ;;
+   "-k")
+        read -s -p "Enter Key [0-9]* : " KEY
+        echo "$KEY" | tr -d " a-zA-Z-." > encodeseed
+   ;;
+   "-o") 
+       OCTAL=1
+   ;;
+   "-h")
+        echo "HELP:"
+        echo "   -o    accepts octal string input such as the code for the dictionary message compression"
+        echo "   -p    accepts a pass phrase for the key"
+        echo "   -k    accepts a decimal string for a key"
+        echo " usage: nn [-o][-p][-k]"
+        exit 1
+   ;;
+   *)   echo "usage: nn [-o][-p][-k]"
+       exit 1
+   ;; 
+esac
+done
+echo ""
+#cat encodeseed
+
+RANK=8;
+
+tc_new -f cypherbet > /dev/null
+# potential variable string
+tc_decomp -f cypherbet 10101
+#enumerate the tcode set
+for i in `tc_rank -f cypherbet`
+do tc_dec -f cypherbet $i
+done | awk '{i++; print i-1,$1}' > /tmp/code
+
+#cat /tmp/code
+
+
+if test "`tail -1 /tmp/code | awk '{print $1}'`" -lt "$RANK"
+then echo too few codes; exit;
+fi 
+
+
+if test "$OCTAL" -eq "0"
+then
+  read -p "Enter plain text: " MESSAGE
+  OCTALMESSAGE=`echo $MESSAGE | t_unpack | fold -w 8 | awk '{if (i==0) {printf "ibase=2; obase=2;"} i++; print $0+100000000;}' | bc \
+  | sed -e '/^1/s///' | tr -d "\n" | rev | awk '{printf "obase=8; ibase=2; %s\n",$0}' | bc |  tr -d "\n\\\" 2> /dev/null | fold -w 1 | awk '{printf "%d ", $1+1}'`
+else
+  read -p "Enter octal string: " MESSAGETWO
+  OCTALMESSAGE=`echo "$MESSAGETWO" | fold -w 1 | awk '{printf "%d ", $1+1}'`
+fi 
+
+
+#echo "octal message:
+# $OCTALMESSAGE"
+
+#echo $MESSAGE | hexdump -v -e '"400+%03o\n"' | awk '{if (i==0) {printf "obase=2; ibase=8;"} i++; print $0;}' | bc | sed -e '/^1/s///' | tr -d "\n" | rev | awk '{printf "obase=8; ibase=2; %s\n",$0}' | bc |  tr -d "\n\\" | fold -w 1 | awk '{printf "%d ", $1+1}'
+echo "enciphering, may take some time. Please wait:"
+
+DOTS=0
+echo "" > /tmp/cyphertext
+touch encodeblock
+######################### encypher ###########################
+./blkgen encodeseed encodeblock 100
+#COL ranges [1,6]
+COL=1;
+for j in $OCTALMESSAGE
+do
+#   echo "j : "$j
+   # COLCODE ranges 6 & 10
+   COLCODE="`echo $COL+5 | bc`" # coding column
+#   echo "COLCODE: "$COLCODE
+   # insert the fill in the +4 column sequence and code that sequence
+   for i in `cut -f "$COL","$COLCODE" encodeblock | awk -v "code=$j" '{i++; print $2; if ($1==code) print 0}'`
+   do 
+#      echo "i: $i"
+      grep "^$i " /tmp/code
+   done | awk '{print $2}' | tr -d "\n" | awk '{printf "obase=16; ibase=2; %s\n", $0}' | bc | tr -d "\n"  >>  /tmp/cyphertext
+
+   COL=`echo $COL+4 | bc`
+   if test "$COL" -gt "6"
+   then COL=1
+   ./blkgen encodeseed encodeblock
+fi
+DOTS=`echo "$DOTS +1" | bc`
+if test "$DOTS" -gt "79"
+then echo "."
+DOTS=0
+else
+echo "." | tr -d "\n"
+fi
+done
+echo ""
+
+CYPHERFILE="`echo $DATESTAMP | tr " :" "-"`.msg"
+
+#"echo "obase=16; ibase=2; `cat  /tmp/binarycypher | fold -w 32`" | bc | tr -d "\n" | fold -w 80 > $CYPHERFILE
+
+cat  /tmp/cyphertext | fold -w 80 > $CYPHERFILE
+
+clear # clear screen of message
+echo Message file created: $CYPHERFILE
+
+#cleanup old files
+rm /tmp/cyphertext /tmp/code encodeblock encodeseed cypherbet
+       exit 0
+
