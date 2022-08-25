@@ -1,0 +1,91 @@
+#!/bin/sh
+#generate 8 x 10 random assigns 
+#Usage: blkgen seedfile blockfile size
+
+# need to get rid of workingfile , also make the seed a string argument... and have this return the string argument
+# should think about a way to eliminate the block file.
+
+#SEED in the range (0,1)  up to SCALE digits "
+if ! test -f "$1" # the seed file
+then 
+echo Usage: assigns3b seedfile blockstructfile
+echo file does not exist: seedfile
+echo creating seedfile
+date | tr " " "\n" | sort | tr -d [:alpha:] | grep . | awk -F ":" '{print $1,int($2/10)}' | tr -d "0 \n" | rev > $1
+#echo start seed: `cat $1`
+exit
+fi
+ 
+
+if ! test "$2" # the block file
+then 
+echo Usage: assigns3b seedfile blockstructfile
+echo missing file name for blockstructfile
+exit
+fi
+
+
+if ! test "$3" # word size
+then 
+SCALE=100
+else
+SCALE=$3
+exit
+fi
+
+#echo scale: $SCALE
+
+#head -c $SCALE seed > /tmp/seed
+#mv /tmp/seed seed
+
+# change froma  file to a string argument
+SEED=`head -c $SCALE $1`
+#echo "seed: `head -c $SCALE $1`"
+
+#potentially another variable?
+RUNCNT=1500
+
+echo "ibase=2; `echo "x=.$SEED; for (i=0; i< $RUNCNT; i++) {scale=$SCALE; x=4*x*(1-x);  scale=0; obase=2;  (4*x)/2 }; " | bc | tr -d "\n" | fold -w 3`" | bc -l  | tr "\n" " " | rev | tr " " "\n" | grep . > /tmp/workingfile
+
+SEED=`echo "scale=$SCALE; x=.$SEED; for (i=0; i< $RUNCNT; i++) x=4*x*(1-x); x " | bc | grep -A 20 "\." | tr -d "\n." | sed -e '/\\\\/s///g' `; 
+echo $SEED | tr -d "0" > $1 
+ 
+
+RANK=8
+for k in `echo "" | awk -v "rank=$RANK" '{for (i=1; i <= rank+2; i++) print i}'`
+do
+#find the first lines to complete a block
+LEN=$RANK
+while test `head -$LEN /tmp/workingfile | sort -u | wc -l | tr -d ' '` -lt "$RANK"
+do LEN=`echo $LEN+1 | bc`
+#echo $LEN
+done
+
+
+SIZE=`wc -l < /tmp/workingfile | tr -d " "`
+SIZEMNS=`echo $SIZE - $LEN | bc`
+
+
+#jumbled block
+for i in `head -$LEN /tmp/workingfile | awk -v "rank=$RANK" '{ i++; if (a[$1+1] == 0)  a[$1+1]=i; for (j=1; j<= rank; j++) { printf "%d ", a[j];} print ""; }' | tail -1 | tr " " "\n" | sort -n `
+do echo `head -$i /tmp/workingfile | tail -1` + 1 | bc
+done > /tmp/tempblock
+
+tail -$SIZEMNS /tmp/workingfile > /tmp/tempworkingfile
+mv /tmp/tempworkingfile /tmp/workingfile
+
+if test $k -eq "1"
+then mv /tmp/tempblock $2
+else 
+paste $2 /tmp/tempblock > /tmp/blocktmp
+mv /tmp/blocktmp  $2
+fi
+
+
+done
+#output coding block
+#debug cat  $2
+
+#debug ls -al /tmp/workingfile
+rm /tmp/workingfile
+
