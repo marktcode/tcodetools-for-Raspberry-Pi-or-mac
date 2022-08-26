@@ -67,7 +67,6 @@ esac
 done
 
 #cat decodeseed
-echo ""
 
 
 
@@ -96,7 +95,7 @@ done | awk -v "check=$CHECKCOL" '{if (i==0) {tag =-1; split('check',a,""); failf
 
 TRUNC=`echo $TRUNC +1 | bc`
 
-COL=`echo $COL+4 | bc`
+COL=`echo $COL+2 | bc`
 if test "$COL" -gt "6"
 then COL=1
 ./blkgen decodeseed decodeblock

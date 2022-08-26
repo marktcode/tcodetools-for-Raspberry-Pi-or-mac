@@ -1,6 +1,6 @@
 #!/bin/sh
 #generate 8 x 10 random assigns 
-#Usage: blkgen seedfile blockfile size
+#Usage: blkgen seedfile blockfile
 
 # need to get rid of workingfile , also make the seed a string argument... and have this return the string argument
 # should think about a way to eliminate the block file.
@@ -25,14 +25,8 @@ exit
 fi
 
 
-if ! test "$3" # word size
-then 
-SCALE=100
-else
-SCALE=$3
-exit
-fi
-
+SCALE="`head -c 2 $1`"
+SCALE=`echo $SCALE+100 | bc`
 #echo scale: $SCALE
 
 #head -c $SCALE seed > /tmp/seed

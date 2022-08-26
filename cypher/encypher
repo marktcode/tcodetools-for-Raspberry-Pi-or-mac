@@ -108,7 +108,7 @@ do
       grep "^$i " /tmp/code
    done | awk '{print $2}' | tr -d "\n" | awk '{printf "obase=16; ibase=2; %s\n", $0}' | bc | tr -d "\n"  >>  /tmp/cyphertext
 
-   COL=`echo $COL+4 | bc`
+   COL=`echo $COL+2 | bc`
    if test "$COL" -gt "6"
    then COL=1
    ./blkgen encodeseed encodeblock
