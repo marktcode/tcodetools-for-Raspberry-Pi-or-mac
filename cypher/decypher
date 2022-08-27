@@ -14,7 +14,7 @@ RANK=8;
 tc_new -f decypherbet > /dev/null
 tc_decomp -f decypherbet 10101 > /dev/null
 
-for i in `rank -f decypherbet`
+for i in `tc_rank -f decypherbet`
 do tc_dec -f decypherbet $i
 done | awk '{i++; print i-1,$1}' > /tmp/code
 
