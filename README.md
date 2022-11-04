@@ -13,4 +13,5 @@ the alphabet and resultant code sets recursively.
 
 Or to select an alphabet and then use a single string to specify the set through a process of decomposition.
 
-
+The tools now include tc_mrsdcdr which is the second stage processing for a CW morse decoder. The first stage processing
+is carried out by a tool in the RTL-SDR collection. See rtl_cw.
