@@ -5,7 +5,7 @@ prefix = /usr/local
 
 INCS = Incs.c StructInc.c AlphabetInc.c DeplnInc.c CodeInc.c ArgInc.c ComplexInc.c
 
-SRCS = tc_new tc_aug tc_deaug tc_reaug tc_param tc_sets tc_list tc_rank tc_enc tc_dec tc_decomp tc_strings tc_struct t_calc t_qtp t_sqtp t_qtc t_qtcie udp_send udp_listen t_pack t_unpack tc_fxdlst
+SRCS = tc_new tc_aug tc_deaug tc_reaug tc_param tc_sets tc_list tc_rank tc_enc tc_dec tc_decomp tc_strings tc_struct t_calc t_qtp t_sqtp t_qtc t_qtcie udp_send udp_listen t_pack t_unpack tc_fxdlst tc_mrsdcdr
 
 OBJS = $(SRCS:.c=.o)
 
@@ -50,6 +50,9 @@ tc_enc: tc_enc.c $(INCS)
 
 tc_dec: tc_dec.c $(INCS)
 	$(CC) tc_dec.c -o tc_dec
+
+tc_mrsdcdr: tc_mrsdcdr.c $(INCS)
+	$(CC) tc_mrsdcdr.c -o tc_mrsdcdr
 
 #tc_even: tc_even.c $(INCS)
 #	$(CC) tc_even.c -o tc_even
