@@ -11,22 +11,26 @@
 #include <netdb.h>
 #include <getopt.h>
 
+// investigate the tree pointers.
+// awk 'BEGIN{for (i=0; i< 400000; i++) {print n=int(rand()+0.5); print n; print n; for (j=0; j< 100000; j++) {}; fflush()}}' | framesnd 192.168.0.53 9222 | awk '{print i++}'
+
+
 
 #include 	"Incs.c"
 
 DepletionSetTypeP codeP = NULL;
 DeplnType depln, lastdepln;
-
+int	bitcount = 0;
 
 #define MAXBUFLEN 1024
 
 struct MorseNode
 {
-	char						string[10];										// pointer to save the notes associated with connection
-	char						code[10];										//binary node code
-	char						morsecode[15];										//binary node code
-	struct MorseNode			*PreviousNodePtr;
 	struct MorseNode			*leftPtr, *rightPtr;							// left and right child nodes
+	struct MorseNode			*PreviousNodePtr;
+	char						string[10];										//  character code
+	char						code[10];										//binary node code
+	char						morsecode[32];									//
 };
 
 // morse letter set
@@ -172,26 +176,30 @@ char *codelist[] = {
 void add_node( struct MorseNode **NodePtrPtr, char *string, int level, char *code ) {
 
 	struct MorseNode	*NodePtr;
-	int	i,j;
+	int	i=0,j=0;
 
 	if (*NodePtrPtr == NULL) {
 		NodePtr = malloc( sizeof( struct MorseNode ) );	 //create the root node
 		if ( NodePtr == NULL ) fprintf(stderr,"Could not allocate memory!\n" );
 		NodePtr->leftPtr = NULL;
 		NodePtr->rightPtr = NULL;
+//		fprintf(stderr,"pointers %p %p!\n",NodePtr->leftPtr,NodePtr->rightPtr );
 		*NodePtrPtr = NodePtr;
 	} else NodePtr = *NodePtrPtr;
 	
 	if (level==strlen(code)) { // store the letter
+//		fprintf(stderr,"%s\t%d\t%p\tL:%p\tR:%p\n",string, strlen(code), NodePtr, NodePtr->leftPtr, NodePtr->rightPtr); fflush(stderr);
 		strncpy(NodePtr->string,string,strlen(string) );
 		strncpy(NodePtr->code,code,strlen(code) );
+		// generating the long form of the morse code
 		j=0;
 		for (i=0; i < strlen(code); i++){
 		 if (NodePtr->code[i]=='0') {NodePtr->morsecode[j++]='1'; NodePtr->morsecode[j++]='0';}
 		 else if (NodePtr->code[i]=='1') {NodePtr->morsecode[j++]='1'; NodePtr->morsecode[j++]='1'; NodePtr->morsecode[j++]='1'; NodePtr->morsecode[j++]='0';}
 		}
 		NodePtr->morsecode[j++]='0';NodePtr->morsecode[j++]='0';
-		NodePtr->morsecode[j++]=0;
+		NodePtr->morsecode[j++]=0; NodePtr->morsecode[j++]=0;
+//		fprintf(stderr,"%s\t%d\t%s\t%s\t%p\n",string, strlen(code), NodePtr->code, NodePtr->morsecode, NodePtr); fflush(stderr);		
 		return;
 	}
 	if(code[level]=='0'){
@@ -205,21 +213,42 @@ void add_node( struct MorseNode **NodePtrPtr, char *string, int level, char *cod
 //output tree in order
 void Inorder(struct MorseNode *NodePtr)
 {
-	if (NodePtr==NULL) return;
-	if (strlen(NodePtr->string) >0) printf ("%s\t%s\t%s\n",NodePtr->string, NodePtr->code, NodePtr->morsecode); 
+	if (NodePtr==NULL)  return;
+	printf ("%p\tL:%p\tR:%p\n",NodePtr, NodePtr->leftPtr, NodePtr->rightPtr); fflush(stdout);
+	if (strlen(NodePtr->string) > 0) printf ("%s\t%s\t%s\n",NodePtr->string, NodePtr->code, NodePtr->morsecode); 
 	Inorder(NodePtr->leftPtr);
 	Inorder(NodePtr->rightPtr);
 }
 
 
 
+
+//output tree in order
+void Postorder(struct MorseNode *NodePtr)
+{
+	if (NodePtr==NULL) return;
+	if (strlen(NodePtr->string) > 0) printf ("%s\t%s\t%s\n",NodePtr->string, NodePtr->code, NodePtr->morsecode); 
+	printf ("%p\tL:%p\tR:%p\n",NodePtr, NodePtr->leftPtr, NodePtr->rightPtr); fflush(stdout);
+	Postorder(NodePtr->rightPtr);
+	Postorder(NodePtr->leftPtr);
+}
+
+/*void Cleaninorder(struct MorseNode **NodePtrPtr)
+{
+	if (*NodePtrPtr==(struct MorseNode *)0x3030) {*NodePtrPtr=NULL; return;}
+	if (*NodePtrPtr==NULL) return;
+	Cleaninorder(*NodePtrPtr->leftPtr);
+	Cleaninorder(*NodePtrPtr->rightPtr);
+}
+*/
+
 struct MorseNode* dit(struct MorseNode *NodePtr) {
-		if (NodePtr->leftPtr == NULL) return NodePtr;
+		if (NodePtr->leftPtr == NULL)  return NodePtr; // fudge  how is it that the tree ends up with a 0x3030 ?
 		else return (NodePtr->leftPtr);
 }
 
 struct MorseNode* dah(struct MorseNode *NodePtr) {
-		if (NodePtr->rightPtr == NULL) return NodePtr;
+		if (NodePtr->rightPtr == NULL)  return NodePtr; // fudge how is it that the tree ends up with a 0x3030 ?
 		else return (NodePtr->rightPtr);
 }
 
@@ -247,6 +276,7 @@ void usage(void)
 		"CW Tcode decoder for use with morsedemod"
 		"Usage: e.g. rtl_sdr -f 27085500 -g 1 -s 2400000  - | ./morsedemod -t .03 -l .00002  -b -h 192.168.1.7 - | ./tcode_decode_udp_mac -h 192.168.1.7"
 		"\t -h [ip address] assumes port 9222"
+		"\t -e envelope"
 		"\tfilename ( '-' dumps samples to stdout)\n\n");
 	exit(1);
 }
@@ -275,11 +305,13 @@ void processring(int deplncode) {
 	ring[ii]= deplncode;
 	// lets make sure its a valid depletion code!
 	if (((ring[ii]/2 > 0) && (ring[ii]/2<=128) && (ring[ii] != 26) && (ring[ii] != 52) && (ring[ii] != 78)) || (ring[ii] == 25) || (ring[ii] == 51) || (ring[ii] == 77) || (ring[ii] == 103) || (ring[ii] == 129)) {
+
 		j=ii-1+10 % 10;
 		k=ii-2+10 % 10;
 		if (ring[ii] == 104) {
+
 			if (retflg==0) { getlet(pointer); pointer = treePtr; }  //fprintf(stdout,"00\n"); // end of letter
-			else if (retflg==1) {getlet(pointer); pointer = treePtr;  fprintf(stdout," ");} //  fprintf(stdout,"0000\n"); // end of word
+ 			else if (retflg==1) { getlet(pointer); pointer = treePtr;  fprintf(stdout," "); } // fprintf(stderr,"\t%d\n", bitcount); bitcount=0; //  fprintf(stdout,"0000\n"); // end of word
 			retflg++; 
 			fflush(stdout);
 			if ((ring[j] == 25) || (ring[j] == 51) || (ring[j] == 77) || (ring[j] == 103) || (ring[j] == 129)) { retflg = 0; pointer = dah(pointer);}
@@ -298,12 +330,21 @@ void processring(int deplncode) {
 			else if ((ring[ii] == 36) ||(ring[ii] == 38) || (ring[ii] == 40) || (ring[ii] == 42) || (ring[ii] == 44) || (ring[ii] == 46) || (ring[ii] == 48) || (ring[ii] == 50)) {retflg = 0; pointer = dah(pointer);}
 		}
 // unconditional substitutions otherwise as follows
-		if 	((ring[ii] == 54) || (ring[ii] == 56) || (ring[ii] == 58) || (ring[ii] == 60)) {retflg = 0; pointer = dit(pointer);}
-		else if ((ring[ii] == 80) || (ring[ii] == 82) || (ring[ii] == 84) || (ring[ii] == 86) || (ring[ii] == 106) || (ring[ii] == 108) || (ring[ii] == 110) || (ring[ii] == 112)) {retflg = 0; pointer = dit(pointer);}
-
-		else if ((ring[ii] == 62) || (ring[ii] == 64) || (ring[ii] == 66) || (ring[ii] == 68) || (ring[ii] == 70) || (ring[ii] == 72) || (ring[ii] == 74) || (ring[ii] == 76)) {retflg = 0; pointer = dah(pointer);}
-		else if ((ring[ii] == 88) || (ring[ii] == 90) || (ring[ii] == 92) || (ring[ii] == 94) || (ring[ii] == 96) || (ring[ii] == 98) || (ring[ii] == 100) || (ring[ii] == 102)) {retflg = 0; pointer = dah(pointer);}
-		else if ((ring[ii] == 114) || (ring[ii] == 116) || (ring[ii] == 118) || (ring[ii] == 120) || (ring[ii] == 122) || (ring[ii] == 124) || (ring[ii] == 126) || (ring[ii] == 128)) {retflg = 0; pointer = dah(pointer);}
+		if 	((ring[ii] == 54) || (ring[ii] == 56) || (ring[ii] == 58) || (ring[ii] == 60)) {
+			 retflg = 0; pointer = dit(pointer); 
+		}
+		else if ((ring[ii] == 80) || (ring[ii] == 82) || (ring[ii] == 84) || (ring[ii] == 86) || (ring[ii] == 106) || (ring[ii] == 108) || (ring[ii] == 110) || (ring[ii] == 112)) {
+			retflg = 0; pointer = dit(pointer);
+		}
+		else if ((ring[ii] == 62) || (ring[ii] == 64) || (ring[ii] == 66) || (ring[ii] == 68) || (ring[ii] == 70) || (ring[ii] == 72) || (ring[ii] == 74) || (ring[ii] == 76)) {
+			retflg = 0; pointer = dah(pointer);
+		}
+		else if ((ring[ii] == 88) || (ring[ii] == 90) || (ring[ii] == 92) || (ring[ii] == 94) || (ring[ii] == 96) || (ring[ii] == 98) || (ring[ii] == 100) || (ring[ii] == 102)) {
+			retflg = 0; pointer = dah(pointer);
+		}
+		else if ((ring[ii] == 114) || (ring[ii] == 116) || (ring[ii] == 118) || (ring[ii] == 120) || (ring[ii] == 122) || (ring[ii] == 124) || (ring[ii] == 126) || (ring[ii] == 128)) {
+			retflg = 0; pointer = dah(pointer);
+		}
 			
 		ii=(ii+1) % 10; // increment ring counter
 	}
@@ -375,8 +416,10 @@ int main ( int argc, char** argv )
     int scanfReturn = 0;
     long counter;
     int	value, sync, lastvalue=0;
+    float envelope;
 	int opt;
     char string[80];
+	int	envelopeFlg=TRUE;
 
 	int sockfd;
 	struct addrinfo hints, *servinfo, *p;
@@ -398,10 +441,14 @@ int main ( int argc, char** argv )
 
 char *nmorse = "2\n0\n1\n2\n12\n1\n1\n4\n1\n0\n"; // defines the T-code set
 
-	while ((opt = getopt(argc, argv, "h:")) != -1) {
+	while ((opt = getopt(argc, argv, "eh:")) != -1) {
 		switch (opt) {
 		case 'h': // host ip
 			strcpy(&hostip[0], optarg);
+			;
+			break;
+		case 'e': // accepts envelope input
+			envelopeFlg=FALSE;
 			;
 			break;
 		default:
@@ -418,16 +465,20 @@ char *nmorse = "2\n0\n1\n2\n12\n1\n1\n4\n1\n0\n"; // defines the T-code set
 	add_node(&treePtr,"",0,""); 
 	for (i=0; i < N; i++) add_node(&treePtr,letterlist[i],0,codelist[i]);
 
-	pointer = treePtr; 
+// ******** check tree  ****************
+//	pointer = treePtr; 
+//	Inorder(pointer);
 
-
-
-
+// ******** reverse check  ****************
+//	pointer = treePtr; 
+//	Postorder(pointer);	
+//	exit(0);
 
 
 
 
 // ******** set up the T-code decoder ***************
+	pointer = treePtr; 
 	codeP = NewCode (codeP);
     int offset = 0, readCharCount;
     
@@ -509,7 +560,9 @@ char *nmorse = "2\n0\n1\n2\n12\n1\n1\n4\n1\n0\n"; // defines the T-code set
 
  //  		scanfReturn = fscanf(stdin," %1023[^\n]", message); // line at a time from stdin
 
-		sscanf(buf, "%d", &value); 
+		if (envelopeFlg == TRUE) sscanf(buf, "%d %f", &value, &envelope);
+		else sscanf(buf, "%d", &value);
+		bitcount++; 
 		if ((i==-1) && (value==1)){
 			i=0;
 		}
