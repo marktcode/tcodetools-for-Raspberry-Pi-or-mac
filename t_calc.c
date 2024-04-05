@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #define EMPTY -1
@@ -42,7 +43,7 @@
   int ReverseData = FALSE;
   int Binary = FALSE;
   int Kolmogorov = FALSE;
-  
+
 
   // Data Array
   long DataLen;
@@ -62,23 +63,23 @@
   double Complexity = 0.0;
   double LastComplexity = 0.0, MinComplexity = 0.0;
   int StartFlag = FALSE, whichprocess = NORMAL;
-  
+
   // T-information
   double LastInfo = 0;
   long LastInfoPos = 0;
   long OldPos = 0;
-    
-    
+
+
   double SaveComplexity = 0.0;
   double SaveInfo = 0.0 ;
   long  SaveInfoPos = 0;
 
-double ei(double x) 
+double ei(double x)
 {
         void nrerror(char error_text[]);
         int k;
         double fact,prev,sum,term;
-                
+
         if (x <= 0.0) nrerror("Bad argument in ei");
         if (x < FPMIN) return log(x)+EULER;
         if (x <= -log(EPS)) {
@@ -118,11 +119,11 @@ void nrerror(char error_text[])
 
 double logint(double x) {
         return ei(log(x));
-}       
+}
 
 double invlogint(double x) {
         double lb, ub, tmp1, tmp2, g1;
-        lb = 1.0+EPS;   
+        lb = 1.0+EPS;
         if (x < logint(lb)) {
                 nrerror("argument too small for fast algorithm");
         }
@@ -136,7 +137,7 @@ double invlogint(double x) {
         g1 = 1/log(lb);
         /* x is now between logint(lb) and logint(ub) */
         /* printf("lb:%g ub:%g tmp1:%g tmp2:%g g1:%g\n",lb,ub,tmp1,tmp2,g1); */
-        while (tmp2-tmp1 > EPS) {       
+        while (tmp2-tmp1 > EPS) {
                 /* printf("lb:%g ub:%g tmp1:%g tmp2:%g g1:%g\n",lb,ub,tmp1,tmp2,g1);
                 printf("Iteration\n"); */
                 ub = (x - tmp1) * (ub - lb)/(tmp2 - tmp1) + lb;
@@ -199,7 +200,7 @@ void Initialise() {
   // Initilise pointers
   Head = 0;
   Tail = DataLen - 1;
-  
+
   if (FullDebug)
     printf("Head and Tail Initialised\n");
 
@@ -216,7 +217,7 @@ void Initialise() {
 }
 
 void CalculateAlphabet() {
- 
+
   int Alphabet[512], AlphaIndex;
   long Loop, AlphabetCount = 0;
 
@@ -229,7 +230,7 @@ void CalculateAlphabet() {
   if (FullDebug)
     printf("Analysing Data\n");
 
-  for (Loop = 0; Loop < DataLen; Loop++) 
+  for (Loop = 0; Loop < DataLen; Loop++)
     Alphabet[(int)Data[Loop] + 256] = TRUE;
 
   if (FullDebug)
@@ -238,9 +239,9 @@ void CalculateAlphabet() {
   for (Loop = 0; Loop < 512; Loop++)
     if (Alphabet[Loop] == TRUE)
       AlphabetCount++;
-  
-  if (VerboseDisplay) 
-    printf("Alphabet : %d characters\n", AlphabetCount); 
+
+  if (VerboseDisplay)
+    printf("Alphabet : %ld characters\n", AlphabetCount);
 
   if (FullDebug)
     printf("Finalising Alphabet\n");
@@ -250,25 +251,25 @@ void CalculateAlphabet() {
 void DisplayLinks() {
 
   long Loop;
- 
-  printf("Next ["); 
-  for (Loop = 0; Loop < DataLen; Loop++)
-    if (Loop < DataLen - 1)
-      printf("%d,", Next[Loop]); 
-    else
-      printf("%d] Head = %d\n", Next[Loop], Head); 
 
-  printf("Last ["); 
+  printf("Next [");
   for (Loop = 0; Loop < DataLen; Loop++)
     if (Loop < DataLen - 1)
-      printf("%d,", Last[Loop]); 
+      printf("%ld,", Next[Loop]);
     else
-      printf("%d] Tail = %d\n", Last[Loop], Tail); 
+      printf("%ld] Head = %ld\n", Next[Loop], Head);
+
+  printf("Last [");
+  for (Loop = 0; Loop < DataLen; Loop++)
+    if (Loop < DataLen - 1)
+      printf("%ld,", Last[Loop]);
+    else
+      printf("%ld] Tail = %ld\n", Last[Loop], Tail);
 
 }
 
 long Length(long Pos) {
- 
+
   if (Next[Pos] != EMPTY)
     return Next[Pos] - Pos;
   else
@@ -291,7 +292,7 @@ int Compare(long FirstPos, long SecondPos) {
       return FALSE;
     // Test remaining characters
     for (Loop = 0; Loop < Len; Loop++)
-      if (Data[FirstPos + Loop] != Data[SecondPos + Loop]) 
+      if (Data[FirstPos + Loop] != Data[SecondPos + Loop])
         return FALSE;
     return TRUE;
   }
@@ -301,7 +302,7 @@ int Compare(long FirstPos, long SecondPos) {
 void Display(long Pos) {
 
   long Len, Loop;
-  
+
   Len = Length(Pos);
   for (Loop = 0; Loop < Len; Loop++)
     if (Loop != Len - 1)
@@ -313,7 +314,7 @@ void Display(long Pos) {
 
 void DisplayPrefix() {
 
-  printf("K = %d\tPrefix = ", K);
+  printf("K = %ld\tPrefix = ", K);
   Display(Prefix);
   printf("\n");
 
@@ -334,7 +335,7 @@ void DisplayAll() {
   if (Head == Tail)
     printf("]\n");
   else {
-    printf("]\tK = %d\tPrefix = ", K);
+    printf("]\tK = %ld\tPrefix = ", K);
     Display(Prefix);
     printf("\n");
   }
@@ -363,7 +364,7 @@ void SelectMaxRunPrefix() {
 	remK=0;
   	if (Tail != EMPTY) {
     	Prefix = Last[Tail];
-    
+
     	Pos = Prefix;
 	while (Pos != EMPTY) {
     	K = 0;
@@ -386,7 +387,7 @@ void SelectShortestMaxRunPrefix() {
   	if (Tail != EMPTY) {
     	if (Prefix == EMPTY) Prefix = Last[Tail];
     	else Prefix = ShortestPrefix;
-    
+
     	Pos = Head; // lets go in forward direction
 	while (Pos != EMPTY) {
     	K = 0;
@@ -404,7 +405,7 @@ void SelectShortestMaxRunPrefix() {
 void Combine(long FirstPos, long LastPos) {
 
   long Following, Pos, NextPos;
-  
+
   Following = Next[LastPos];
 
   Pos = Next[FirstPos];
@@ -521,7 +522,7 @@ void AugmentShortestMaxRunPrefix() {
           	ShortestPrefix = FirstPos;
 //          	printf("firstpos2 %d\n",FirstPos);
          }
-    		
+
       }
       else {
     	if ((Next[Pos] != EMPTY) && (Length(Pos) <= LowestLength)) {
@@ -534,7 +535,7 @@ void AugmentShortestMaxRunPrefix() {
       }
     }
   }
-  
+
 //  printf("\n length %d \n", LowestLength);				// output length of current (Length(FirstPos))
 
 }
@@ -545,17 +546,17 @@ void DisplayProgress() {
   double Percentage;
   double ThisComplexity = 0.0, ThisInfo;
 
-  Pos = DataLen - Tail; 
+  Pos = DataLen - Tail;
   Percentage = (double)(Pos * 100) / (double)DataLen;
 
   switch (ProgressType) {
   case PROGRESSAUG :
     if (AugCount % Progress == 0) {
-      if (InterpolateAug) 
+      if (InterpolateAug)
 	ThisK = 1;
       else
-	ThisK = LastK; 
-      while (ThisK <= LastK) { 
+	ThisK = LastK;
+      while (ThisK <= LastK) {
 	ThisPos =  ThisK * ((Pos - OldPos) / LastK) + OldPos;
 	if (StartFlag == TRUE) {
 	  ThisComplexity = LastComplexity+log((double)ThisK + 1)/log(2.0);
@@ -564,41 +565,41 @@ void DisplayProgress() {
 	  {
 	    ThisComplexity = 0;
 	    StartFlag = TRUE;
-	  }  
-	if (VerboseDisplay)  printf("Progress : %d bytes (%.2f %%), %d TAL\tT-complexity : %f Taugs", ThisPos, (double)(ThisPos * 100) / (double)DataLen, AugCount, ThisComplexity);
-	  
-	else  printf("%d\t%.2f\t%d\t%f", ThisPos, (double)(ThisPos * 100) / (double)DataLen, AugCount, ThisComplexity);
-          
+	  }
+	if (VerboseDisplay)  printf("Progress : %ld bytes (%.2f %%), %ld TAL\tT-complexity : %f Taugs", ThisPos, (double)(ThisPos * 100) / (double)DataLen, AugCount, ThisComplexity);
+
+	else  printf("%ld\t%.2f\t%ld\t%f", ThisPos, (double)(ThisPos * 100) / (double)DataLen, AugCount, ThisComplexity);
+
 	if (CalculateTInfo) {
 	  ThisInfo = invlogint(ThisComplexity);
-	  if (VerboseDisplay) 
-	    printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (ThisPos - LastInfoPos));  
+	  if (VerboseDisplay)
+	    printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (ThisPos - LastInfoPos));
 	  else
-	    printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (ThisPos - LastInfoPos));     
+	    printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (ThisPos - LastInfoPos));
 	  LastInfoPos = ThisPos;
 	  LastInfo = ThisInfo;
 	}
 	printf("\n");
 	ThisK++;
       }
-    };    
+    };
     break;
 
   case PROGRESSPERCENT :
       while (NextProgress <= Percentage) {
         if (VerboseDisplay) {
-          printf("Progress : %d bytes (%.2f %%), %d TAL\tT-complexity : %f Taugs", Pos, (double)NextProgress, AugCount, Complexity);
+          printf("Progress : %ld bytes (%.2f %%), %ld TAL\tT-complexity : %f Taugs", Pos, (double)NextProgress, AugCount, Complexity);
         }
         else
-        {  
-          printf("%d\t%.2f\t%d\t%f", Pos, (double)NextProgress, AugCount, Complexity);
+        {
+          printf("%ld\t%.2f\t%ld\t%f", Pos, (double)NextProgress, AugCount, Complexity);
         }
         if (CalculateTInfo) {
             ThisInfo = invlogint(Complexity);
-            if (VerboseDisplay) 
-              printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (Pos - LastInfoPos));  
+            if (VerboseDisplay)
+              printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (Pos - LastInfoPos));
             else
-              printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (Pos - LastInfoPos));     
+              printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (Pos - LastInfoPos));
             LastInfoPos = Pos;
             LastInfo = ThisInfo;
         }
@@ -610,22 +611,22 @@ void DisplayProgress() {
     case PROGRESSLENGTH :
       while (NextProgress <= Pos) {
         if (VerboseDisplay) {
-          printf("Progress : %d bytes (%.2f %%), %d TAL\tT-complexity : %f Taugs", NextProgress, Percentage, AugCount, Complexity);
+          printf("Progress : %ld bytes (%.2f %%), %ld TAL\tT-complexity : %f Taugs", NextProgress, Percentage, AugCount, Complexity);
         }
         else
-        {  
-          printf("%d\t%.2f\t%d\t%f", NextProgress, Percentage, AugCount, Complexity);
+        {
+          printf("%ld\t%.2f\t%ld\t%f", NextProgress, Percentage, AugCount, Complexity);
         }
         if (CalculateTInfo) {
             ThisInfo = invlogint(Complexity);
-            if (VerboseDisplay) 
-              printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (NextProgress - LastInfoPos));  
+            if (VerboseDisplay)
+              printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (NextProgress - LastInfoPos));
             else
-              printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (NextProgress - LastInfoPos));     
+              printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (NextProgress - LastInfoPos));
             LastInfoPos = NextProgress;
             LastInfo = ThisInfo;
         }
-        printf("\n");  
+        printf("\n");
         NextProgress += Progress;
       }
       break;
@@ -636,7 +637,7 @@ void DisplayProgress() {
 //		  printf("Progress : %d bytes \tT-complexity : %f Taugs", Pos);
 //		}
 //		else
-//		{  
+//		{
 //		  printf("%d\t%f", Pos);
 //		}
         if (NextProgress < DataLen) {
@@ -646,14 +647,14 @@ void DisplayProgress() {
             SaveInfoPos = Pos;
         }
         else {
-        	if (VerboseDisplay) 
+        	if (VerboseDisplay)
               printf("T-complexity 1:  %f, T-complexity 2: %f, T-information 1:  %f, T-information 2: %f, T-entropy 1: %f, T-entropy 2: %f\n",SaveComplexity, Complexity, SaveInfo, invlogint(Complexity), SaveInfo/ SaveInfoPos, (invlogint(Complexity) - SaveInfo) / (Pos - SaveInfoPos));
             else
               printf("%f\t%f\t%f\t%f\t%f\t%f\n",SaveComplexity, Complexity, SaveInfo, invlogint(Complexity), SaveInfo/ SaveInfoPos, (invlogint(Complexity) - SaveInfo) / (Pos - SaveInfoPos));
-        }    
+        }
             LastInfoPos = Pos;
             LastInfo = ThisInfo;
-//        }        
+//        }
         if (NextProgress < DataLen)	{NextProgress = DataLen;}
         else NextProgress +=1;
       }
@@ -674,7 +675,7 @@ void Finalise() {
 
 int main(int argc, char *argv[]) {
 
-  int Loop; 
+  int Loop;
   long	i;
 
   // Read arguments from command line
@@ -716,8 +717,8 @@ int main(int argc, char *argv[]) {
       FromFile = TRUE;
       if  (strcmp(argv[Loop], "-fr")== 0) ReverseData = TRUE;
       else ReverseData = FALSE;
-      
-      if (argc > (Loop+1)) {      
+
+      if (argc > (Loop+1)) {
         FileName = argv[Loop + 1];
         Loop++;
       }
@@ -741,17 +742,17 @@ int main(int argc, char *argv[]) {
     }
     else if (strcmp(argv[Loop], "-pa") == 0) {
       ProgressType = PROGRESSAUG;
-      sscanf(argv[Loop + 1], "%d", &Progress);
+      sscanf(argv[Loop + 1], "%ld", &Progress);
       Loop++;
     }
     else if (strcmp(argv[Loop], "-pp") == 0) {
       ProgressType = PROGRESSPERCENT;
-      sscanf(argv[Loop + 1], "%d", &Progress);
+      sscanf(argv[Loop + 1], "%ld", &Progress);
       Loop++;
     }
     else if (strcmp(argv[Loop], "-pl") == 0) {
       ProgressType = PROGRESSLENGTH;
-      sscanf(argv[Loop + 1], "%d", &Progress);
+      sscanf(argv[Loop + 1], "%ld", &Progress);
       Loop++;
     }
     else if (strcmp(argv[Loop], "-d") == 0) {
@@ -768,24 +769,24 @@ int main(int argc, char *argv[]) {
     }
     else if (strcmp(argv[Loop], "-v") == 0) {
       VerboseDisplay = TRUE;
-    }    
+    }
     else if (strcmp(argv[Loop], "-i") == 0) {
       InterpolateAug = TRUE;
     }
     else if (strcmp(argv[Loop], "-ti") == 0) {
       CalculateTInfo = TRUE;
-    }    
+    }
     else if (strcmp(argv[Loop], "-b") == 0) {
       Binary = TRUE;
-    }    
+    }
     else if (strcmp(argv[Loop], "-k") == 0) {
       Kolmogorov = TRUE;
-    }    
+    }
     else if (strcmp(argv[Loop], "-n") == 0) {
       ProgressType = PROGRESSPOINT;
-      sscanf(argv[Loop + 1], "%d", &NextProgress);
+      sscanf(argv[Loop + 1], "%ld", &NextProgress);
       Loop++;
-    }    
+    }
     else {
       if (Data == NULL)
         Data = argv[Loop];
@@ -809,9 +810,9 @@ int main(int argc, char *argv[]) {
 
 
   if (FromFile == TRUE) {
-    LoadFile(FileName);
+    LoadFile();
     if (VerboseDisplay) {
-      printf("File : %s\tSize : %d", FileName, DataLen);
+      printf("File : %s\tSize : %ld", FileName, DataLen);
      if (RemovedLast == TRUE)
        printf(" (Removed new line from end of file)\n");
      else
@@ -821,7 +822,7 @@ int main(int argc, char *argv[]) {
   else {
     DataLen = (long) strlen(Data);
     if (VerboseDisplay) {
-      printf("File : stdin\tSize : %d\n", DataLen);
+      printf("File : stdin\tSize : %ld\n", DataLen);
     }
   }
   if (ReverseData == TRUE) {
@@ -842,14 +843,14 @@ int main(int argc, char *argv[]) {
 
   switch (ProgressType) {
     case PROGRESSAUG :
-      if (VerboseDisplay) 
-        printf("Summary information every %d T-augmentations\n", Progress);
+      if (VerboseDisplay)
+        printf("Summary information every %ld T-augmentations\n", Progress);
       break;
     case PROGRESSPERCENT :
-      printf("Summary information every %d percent\n", Progress);
+      printf("Summary information every %ld percent\n", Progress);
       break;
     case PROGRESSLENGTH :
-      printf("Summary information every %d bytes\n", Progress);
+      printf("Summary information every %ld bytes\n", Progress);
       break;
   }
 
@@ -860,7 +861,7 @@ int main(int argc, char *argv[]) {
   if (whichprocess == NORMAL) {
 	  while (Head != Tail) {
 	    SelectPrefix();
-		if (DisplayAug == TRUE)  
+		if (DisplayAug == TRUE)
 		  DisplayAll();
 		if (DisplayList == TRUE)
 		  DisplayLinks();
@@ -872,7 +873,7 @@ int main(int argc, char *argv[]) {
   else if (whichprocess == RUNIT) {
 	  while (Head != Tail) {
 		SelectMaxRunPrefix();
-		if (DisplayAug == TRUE)  
+		if (DisplayAug == TRUE)
 		  DisplayAll();
 		if (DisplayList == TRUE)
 		  DisplayLinks();
@@ -880,12 +881,12 @@ int main(int argc, char *argv[]) {
 		  DisplayProgress();
 		Augment();
 	  }
-  
+
   }
-  else if (whichprocess == ORDERLY) { 
+  else if (whichprocess == ORDERLY) {
 	  while (Head != Tail) {
 		SelectShortestMaxRunPrefix();
-		if (DisplayAug == TRUE)  
+		if (DisplayAug == TRUE)
 		  DisplayAll();
 		if (DisplayList == TRUE)
 		  DisplayLinks();
@@ -893,11 +894,11 @@ int main(int argc, char *argv[]) {
 		  DisplayProgress();
 		AugmentShortestMaxRunPrefix();
 	  }
-  
+
   }
 
   // Finalise
-  if (DisplayAug == TRUE)  
+  if (DisplayAug == TRUE)
     DisplayAll();
   if (DisplayList == TRUE)
     DisplayLinks();
@@ -913,9 +914,9 @@ int main(int argc, char *argv[]) {
     printf("\n");
   }
   else if (ProgressType == PROGRESSNONE) printf("%.2f\t%.2f\t%.5f\n",Complexity,invlogint(Complexity), invlogint(Complexity)/DataLen);
- 
- 
- 
+
+
+
  }
  else { //Kolmogorov
  	Initialise();
@@ -928,9 +929,9 @@ int main(int argc, char *argv[]) {
 		Augment();
 	}
 
- 
+
     MinComplexity = Complexity;
- 
+
     Initialise();
     Complexity=0.0;
     for (i=0; i < DataLen/2; i++) { tempData = Data[i]; Data[i]  = Data[DataLen-1 - i]; Data[DataLen-1  - i] = tempData;}
@@ -941,12 +942,12 @@ int main(int argc, char *argv[]) {
 	    SelectPrefix();
 		Augment();
 	 }
- 
+
     if (Complexity > MinComplexity) Complexity = MinComplexity ;
     printf("%.2f\t%.2f\t%.5f\n",Complexity,invlogint(Complexity), invlogint(Complexity)/DataLen);
- 
+
  }
-  
+
   Finalise();
   return 0;
 }

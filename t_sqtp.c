@@ -15,21 +15,21 @@
 #define MAX_STEPSAMPLE_INTERVAL 65536  // The maximum interval (2^16) for step information sample
 
 typedef struct CODEWORDLIST  // match lists links same codewords based on IDs. string list links all codewords
-{  
+{
     unsigned long CodeWordID;
-    struct CODEWORDLIST *NextCodeWordInMatchList;  
-    struct CODEWORDLIST *PreviousCodeWordInMatchList;    
-    struct CODEWORDLIST *NextCodeWordInStringList;    
-    struct CODEWORDLIST *PreviousCodeWordInStringList;  
-    
-}CODEWORD; 
+    struct CODEWORDLIST *NextCodeWordInMatchList;
+    struct CODEWORDLIST *PreviousCodeWordInMatchList;
+    struct CODEWORDLIST *NextCodeWordInStringList;
+    struct CODEWORDLIST *PreviousCodeWordInStringList;
+
+}CODEWORD;
 
 typedef struct MATCHLISTENTRY_DEF  // entry list stores heads of all match lists. These are dummy heads, no real data is stored here
-{  
+{
     unsigned long CodeWordID;
-    struct CODEWORDLIST *NextCodeWordInMatchList;   
+    struct CODEWORDLIST *NextCodeWordInMatchList;
     struct CODEWORDLIST *PreviousCodeWordInMatchList;
-    
+
 }MATCHLISTENTRY;
 
 
@@ -53,13 +53,13 @@ typedef struct MATCHLISTENTRY_DEF  // entry list stores heads of all match lists
  int	Binary = FALSE;
 
 
-  
+
 
   // Data Array
 	long DataLen;
 	int *Data;
 	int string = FALSE;
-	
+
 	char *Dynamics, *Dynamicsrev;
 	char *Headr[1000];
 
@@ -75,9 +75,9 @@ typedef struct MATCHLISTENTRY_DEF  // entry list stores heads of all match lists
 	long HashTableSize;
 
 
-    long Tprefix_N_Indicate;  
-    long NextAvailableEntry; 
-    long FirstNewEntry_PerPass;  
+    long Tprefix_N_Indicate;
+    long NextAvailableEntry;
+    long FirstNewEntry_PerPass;
     CODEWORD *PrimeList;
 
   // T-information
@@ -85,12 +85,12 @@ typedef struct MATCHLISTENTRY_DEF  // entry list stores heads of all match lists
 
 
 
-double ei(double x) 
+double ei(double x)
 {
         void nrerror(char error_text[]);
         int k;
         double fact,prev,sum,term;
-                
+
         if (x <= 0.0) nrerror("Bad argument in ei");
         if (x < FPMIN) return log(x)+EULER;
         if (x <= -log(EPS)) {
@@ -130,11 +130,11 @@ void nrerror(char error_text[])
 
 double logint(double x) {
         return ei(log(x));
-}       
+}
 
 double invlogint(double x) {
         double lb, ub, tmp1, tmp2, g1;
-        lb = 1.0+EPS;   
+        lb = 1.0+EPS;
         if (x < logint(lb)) {
                 nrerror("argument too small for fast algorithm");
         }
@@ -148,7 +148,7 @@ double invlogint(double x) {
         g1 = 1/log(lb);
         /* x is now between logint(lb) and logint(ub) */
         /* printf("lb:%g ub:%g tmp1:%g tmp2:%g g1:%g\n",lb,ub,tmp1,tmp2,g1); */
-        while (tmp2-tmp1 > EPS) {       
+        while (tmp2-tmp1 > EPS) {
                 /* printf("lb:%g ub:%g tmp1:%g tmp2:%g g1:%g\n",lb,ub,tmp1,tmp2,g1);
                 printf("Iteration\n"); */
                 ub = (x - tmp1) * (ub - lb)/(tmp2 - tmp1) + lb;
@@ -161,14 +161,14 @@ double invlogint(double x) {
         else return (ub-.7582221);
 }
 
-/**********************************************************************************/
-/* New quickcalc
-/*
-/**********************************************************************************/
+/******************************************************************************
+ * New quickcalc
+ *
+ ******************************************************************************/
 
 
 double ftdSelAugment ( char *buffer, long bufflen)
-{  
+{
 
     long Loop, StepCount, HashCodeTemp, Length_SuffixString_ParsedIntoOneCodeword, StepInfoPrintCount;
 	long TprefixLength, HashCode_Tprefix, Count_TprefixMatch, TempID, TempEntry;
@@ -176,30 +176,30 @@ double ftdSelAugment ( char *buffer, long bufflen)
 	char *pc_TprefixAddress;
 	CODEWORD *CodeWordBegin, *PrimeListTemp, *RealEndOfPrimeList, *Node_Tprefix, *HeadOfCurrentMatchList;
 	CODEWORD *CodeWordInMatchList;
-	
+
     Complexity = 0;
     Tprefix_N_Indicate = 256;												// entry reserved for p^k_n
     NextAvailableEntry = 257; 												// points to next available entry
     FirstNewEntry_PerPass = NextAvailableEntry;  							// entry for first new codeword in each pass
     EntryList[Tprefix_N_Indicate].CodeWordID = 0;
 
-    PrimeListEnd = NULL; 
+    PrimeListEnd = NULL;
 
 
 /********* Initialize head node *********/
-    PrimeList[0].NextCodeWordInStringList = PrimeList + 1;   
+    PrimeList[0].NextCodeWordInStringList = PrimeList + 1;
     PrimeList[0].PreviousCodeWordInStringList = NULL;
-    
-/********* Initialize end node *********/    
+
+/********* Initialize end node *********/
     PrimeList[bufflen].NextCodeWordInStringList = NULL;
-    PrimeList[bufflen].PreviousCodeWordInStringList = PrimeList + bufflen - 1; 
-    
+    PrimeList[bufflen].PreviousCodeWordInStringList = PrimeList + bufflen - 1;
+
     for (Loop = 0; Loop < 256; Loop++)  									// initialize first 256 entries (0--255)
     {
-        EntryList[Loop].PreviousCodeWordInMatchList = (CODEWORD*)(EntryList + Loop); 
-        EntryList[Loop].CodeWordID = 0; 
+        EntryList[Loop].PreviousCodeWordInMatchList = (CODEWORD*)(EntryList + Loop);
+        EntryList[Loop].CodeWordID = 0;
     }
-    
+
     for (Loop= 1; Loop < bufflen ; Loop++)   							// create lists. Pointers in NextCodeWordInMatchList and NextCodeWordInStringList should have same values
     {
         PrimeList[Loop].NextCodeWordInStringList = PrimeList + Loop + 1;
@@ -210,11 +210,11 @@ double ftdSelAugment ( char *buffer, long bufflen)
     StepCount = 1;   													// includes literal character
 
     PrimeListTemp = PrimeList;
-    for (Loop= 0; Loop < bufflen - 1; Loop++)  
+    for (Loop= 0; Loop < bufflen - 1; Loop++)
     {
-        HashCodeTemp = (unsigned char)(buffer[Loop]);  
+        HashCodeTemp = (unsigned char)(buffer[Loop]);
         PrimeListTemp->NextCodeWordInStringList->CodeWordID = HashCodeTemp;
-        
+
 																			/*********** Add to the list **********/
         PrimeListTemp->NextCodeWordInStringList->PreviousCodeWordInMatchList =EntryList[HashCodeTemp].PreviousCodeWordInMatchList;
         PrimeListTemp->NextCodeWordInStringList->NextCodeWordInMatchList = (CODEWORD*)&(EntryList[HashCodeTemp]);
@@ -233,7 +233,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
 
     				/*********** start T-decomposition ***********/
 
-    for (;;)  
+    for (;;)
     {
         if (PrimeList->NextCodeWordInStringList->NextCodeWordInStringList == NULL) // Check if process has finished (i.e. if these is only one codeword in string)
             break;
@@ -243,7 +243,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
 
          			/*********** (1)Get the T-prefix ********** */
         Node_Tprefix = PrimeListEnd->PreviousCodeWordInStringList;
-        pc_TprefixAddress = buffer + (Node_Tprefix - PrimeList) - 1;  
+        pc_TprefixAddress = buffer + (Node_Tprefix - PrimeList) - 1;
         TprefixLength = RealEndOfPrimeList - Node_Tprefix;
         HashCode_Tprefix = (Node_Tprefix->CodeWordID);
         HeadOfCurrentMatchList = Node_Tprefix->NextCodeWordInMatchList;  /*Point to the dummy head of the hash list.*/
@@ -252,22 +252,22 @@ double ftdSelAugment ( char *buffer, long bufflen)
         while (Node_Tprefix->PreviousCodeWordInStringList->PreviousCodeWordInStringList != NULL)
         {
             if (Node_Tprefix->PreviousCodeWordInMatchList == Node_Tprefix->PreviousCodeWordInStringList)
-            {  
+            {
                 Node_Tprefix = Node_Tprefix->PreviousCodeWordInStringList;
                 K++;
             }
             else
                 break;
         }
-        RealEndOfPrimeList = Node_Tprefix; 
-  
+        RealEndOfPrimeList = Node_Tprefix;
+
         Node_Tprefix->PreviousCodeWordInMatchList->NextCodeWordInMatchList = HeadOfCurrentMatchList;
         HeadOfCurrentMatchList->PreviousCodeWordInMatchList = Node_Tprefix->PreviousCodeWordInMatchList;
         Node_Tprefix->PreviousCodeWordInStringList->NextCodeWordInStringList = PrimeListEnd;
         PrimeListEnd->PreviousCodeWordInStringList = Node_Tprefix->PreviousCodeWordInStringList;
 
-        Complexity += log((double)(K + 1)); 
-        
+        Complexity += log((double)(K + 1));
+
         			/*********** (3)Search from the beginning of the match list to find the codeword that matches the T-prefix ***********/
         CodeWordInMatchList = HeadOfCurrentMatchList;  /*The head of the match list.*/
 
@@ -278,7 +278,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
                                                                              			// once the new codeword does not mathc the T-prefix
         																				// Now search really begins from begining of corresponding match list
         																				// The match list helps to locate the codeword in the string list
-        while (CodeWordInMatchList != HeadOfCurrentMatchList)  
+        while (CodeWordInMatchList != HeadOfCurrentMatchList)
         {
             PrimeListTemp = CodeWordInMatchList;
             Count_TprefixMatch = 1;  													// number of adjacent codewords matching the T-prefix
@@ -287,10 +287,10 @@ double ftdSelAugment ( char *buffer, long bufflen)
 
             for (;;)  																	// matched codeword found. Here we need remove some codewords from the match list and string list
                         																// New merged codeword will be added to the corresponding match list. Check in the string list
-            {    
+            {
                 if (HashCode_Tprefix == PrimeListTemp->CodeWordID)
                 { 																		// The current codeword DOES match the T-prefix
-                    Count_TprefixMatch++;  
+                    Count_TprefixMatch++;
                     if (Count_TprefixMatch <= K)
                     {
                         PrimeListTemp = PrimeListTemp->NextCodeWordInStringList;
@@ -337,7 +337,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
                             TempEntry = NextAvailableEntry;
                             EntryList[TempEntry].PreviousCodeWordInMatchList = (CODEWORD*)(EntryList + TempEntry);
                             EntryList[TempEntry].CodeWordID= 0;
-                                
+
                             NextAvailableEntry++;
                         }
                         else
@@ -347,10 +347,10 @@ double ftdSelAugment ( char *buffer, long bufflen)
                     }
                     CodeWordBegin->CodeWordID = TempEntry;  							// new ID
                     { 																	// if not the last node in the match list
-                        PrimeListTemp->PreviousCodeWordInMatchList->NextCodeWordInMatchList = PrimeListTemp->NextCodeWordInMatchList; 
+                        PrimeListTemp->PreviousCodeWordInMatchList->NextCodeWordInMatchList = PrimeListTemp->NextCodeWordInMatchList;
                         PrimeListTemp->NextCodeWordInMatchList->PreviousCodeWordInMatchList = PrimeListTemp->PreviousCodeWordInMatchList;
                     }
-                    
+
 																						/*********** Add to the lists ***********/
                     CodeWordBegin->PreviousCodeWordInMatchList =EntryList[TempEntry].PreviousCodeWordInMatchList;
                     CodeWordBegin->NextCodeWordInMatchList = (CODEWORD*)(&(EntryList[TempEntry]));
@@ -359,7 +359,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
 																						/****************************************/
                     CodeWordBegin->NextCodeWordInStringList = PrimeListTemp->NextCodeWordInStringList;
                     PrimeListTemp->NextCodeWordInStringList->PreviousCodeWordInStringList = CodeWordBegin;
-                
+
                     break;
                 }
             }																			// end of for (;;)
@@ -376,11 +376,11 @@ double ftdSelAugment ( char *buffer, long bufflen)
 int main(int argc, char *argv[]) {
 
   int done, Partition, defaultviewing = FALSE, Raster = FALSE, Surface=TRUE, String=FALSE, newsettings=FALSE;
-  int Loop, Range, Startoffset, Start, Finish, DataOut=FALSE, LogPart=FALSE, BestDir=FALSE,  val, autoset = TRUE, minset=FALSE, maxset=FALSE ; 
+  int Loop, Range, Startoffset, Start, Finish, DataOut=FALSE, LogPart=FALSE, BestDir=FALSE,  val, autoset = TRUE, minset=FALSE, maxset=FALSE ;
   long	i, j, k, l, m, offset, count2;
   long	Window = 10000, Shift = 1000;
   float xscale = 9.0, yscale = 3.0 ,zscale = 1.0 , xoffset = 0.0, yoffset = 0.0 ,zoffset = 0.0;
-  float nxscale = 9.0 , nyscale = 3.0 , nzscale = 1.0 , nxoffset = 0.0, nyoffset = 0.0, nzoffset = 0.0; 
+  float nxscale = 9.0 , nyscale = 3.0 , nzscale = 1.0 , nxoffset = 0.0, nyoffset = 0.0, nzoffset = 0.0;
   float Threshold, level, Scale=1.0, *Input, avg, max, min, width = 0.0;
   float *Rasterlist, *MaxList;
   double Complexity1, Complexity2,  maxComplexity;
@@ -420,12 +420,12 @@ int main(int argc, char *argv[]) {
 			return 0;
 		}
 		else if (strcmp(argv[Loop], "-w") == 0) {  // window size
-			sscanf(argv[Loop + 1], "%d", &Window);
+			sscanf(argv[Loop + 1], "%ld", &Window);
 			Loop++;
-			sscanf(argv[Loop + 1], "%d", &Shift);
+			sscanf(argv[Loop + 1], "%ld", &Shift);
 			Loop++;
 		}
-		else if (strcmp(argv[Loop], "-p") == 0) {  
+		else if (strcmp(argv[Loop], "-p") == 0) {
 			sscanf(argv[Loop + 1], "%d", &Start);
 			Loop++;
 			sscanf(argv[Loop + 1], "%d", &Finish);
@@ -461,7 +461,7 @@ int main(int argc, char *argv[]) {
 			Loop++;
 		}
 		else if (strcmp(argv[Loop], "-xyz") == 0) {  // newsettings
-			newsettings=TRUE;   		
+			newsettings=TRUE;
 			sscanf(argv[Loop + 1], "%f", &nxscale);
 			Loop++;
 			sscanf(argv[Loop + 1], "%f", &nyscale);
@@ -486,26 +486,26 @@ int main(int argc, char *argv[]) {
 		}
 
     }
-    
+
 	int graphnum = 1;
 	done = scanf("%c",&object);	// get first character
 	while ((done != EOF) && (graphnum != 0)) {
 		while (( object != 'Y') && ( object != 'y') &&  ( object != 'Z') && ( object != 'z'))  { done = scanf("%c",&object); }
 		done = scanf("%c",&tempobject); // read next
-		if ( tempobject == ':') { 
-			graphnum--; 
+		if ( tempobject == ':') {
+			graphnum--;
 			done = scanf("%c:",&colour);
 			i = 0;
-			while  (( EOF != done ) && (i < 80)) { 
-				done = scanf("%c",&label[i]); 
+			while  (( EOF != done ) && (i < 80)) {
+				done = scanf("%c",&label[i]);
 				if ( ':' == (char) label[i]) break;
 				i++;
 			}
-			label[i+1] = 0; 
-		} 
+			label[i+1] = 0;
+		}
 	}
-	
-	done = scanf(" %d: %d:",&DataLen, &count2);
+
+	done = scanf(" %ld: %ld:",&DataLen, &count2);
 
 	if (count2 > 1) { printf("\nIncorrect size for array second parameter\n"); exit (1); }
 	done = scanf(" %f: %f: %f:", &xscale, &yscale, &zscale);
@@ -513,15 +513,15 @@ int main(int argc, char *argv[]) {
 
 	if (newsettings==FALSE) {
 		nxscale=xscale;
-		nyscale=yscale; 
-		nzscale=zscale; 
-		nxoffset=xoffset; 
-		nyoffset=yoffset; 
+		nyscale=yscale;
+		nzscale=zscale;
+		nxoffset=xoffset;
+		nyoffset=yoffset;
 		nzoffset=zoffset;
 	}
-	
-		
-		 
+
+
+
 
 
 	Input = (float *) malloc(DataLen * sizeof(int));
@@ -530,8 +530,8 @@ int main(int argc, char *argv[]) {
 	avg = 0.0;
 	if ((DataLen >= 1) && (count2 == 1)) {
 
-		printf("%c:%c:%s :%d:1 :%g:%g:%g :%g:%g:%g\n",object, colour, label, DataLen, nxscale, yscale, zscale, nxoffset, nyoffset, nzoffset); //echo graph but with a ball
-		for (i = 0; i < DataLen; i++) { 
+		printf("%c:%c:%s :%ld:1 :%g:%g:%g :%g:%g:%g\n",object, colour, label, DataLen, nxscale, yscale, zscale, nxoffset, nyoffset, nzoffset); //echo graph but with a ball
+		for (i = 0; i < DataLen; i++) {
 			scanf("%f", &Input[i]);
 			if (i==0) max = min = Input[0];
 			else {
@@ -545,49 +545,49 @@ int main(int argc, char *argv[]) {
 		if (((object == 'y') || (object == 'z')) && (DataLen > 500)) printf ("\np:.:points\n");
 
 		avg = avg/(float) DataLen;
-		printf("\nb:m:\\ \n\n#sqtp -p %d %d -w %d %d \n", Start, Finish, Window, Shift);
-	
-		if (DataLen) printf("#min: %g,  avg: %g, max: %g, Datalength: %d\n", min, avg, max, DataLen);
-		
+		printf("\nb:m:\\ \n\n#sqtp -p %d %d -w %ld %ld \n", Start, Finish, Window, Shift);
+
+		if (DataLen) printf("#min: %g,  avg: %g, max: %g, Datalength: %ld\n", min, avg, max, DataLen);
+
 		if (Start == -Finish ) {
 			Range = 2 * Finish; // is symmetric
 			Startoffset = 0;
 		}
 		else {
-			if (-Start > Finish) { Range = - 2 * Start; Startoffset = 0;   }		// use Start to define scaling range		
+			if (-Start > Finish) { Range = - 2 * Start; Startoffset = 0;   }		// use Start to define scaling range
 			else if (-Start < Finish) { Range = 2 * Finish;  Startoffset = Start + Finish; } // use Finish to define scaling range
 		}
-		
+
 		float floatrange;
 		if (width) { floatrange = max-min; max = avg+floatrange*width; min = avg - floatrange*width; }
 		for (i = 0; i < DataLen; i++) Data[i++] = (int) (( (Input[i] - min) * Range)/(max-min) - Startoffset) ;
 		free(Input);
-		
+
 
 		if (Surface==TRUE) {
 			HashTableSize = Window + 255;  										// approximate the maximum number of different codewords that might occur during whole process
-	
+
 			  // Allocate memory
 			  EntryList = (MATCHLISTENTRY*) malloc(sizeof (MATCHLISTENTRY) * HashTableSize);
 			  PrimeList = (CODEWORD *)malloc ((Window + 2) * sizeof (CODEWORD)); // two extra nodes, head, end nodes in string list.
-	
+
 			  Dynamics = (char *) malloc(DataLen);
 			  Dynamicsrev = (char *) malloc(Window);
 			  if ((EntryList == NULL) || (PrimeList == NULL) || (Dynamics == NULL) || (Dynamicsrev == NULL)) {printf("Error Allocating Memory for linked list\n"); return -1;}
 				j=0; for (i = 0; i <= (DataLen - Window); i+= Shift) j++;
-				printf("s:p:partitiondata: %d:%d: %g:%g:%g: %g:%g:%g\n", j, (Finish-Start) + 1, nxscale, nyscale, nzscale, nxoffset, nyoffset, nzoffset);
-	
-	
+				printf("s:p:partitiondata: %ld:%d: %g:%g:%g: %g:%g:%g\n", j, (Finish-Start) + 1, nxscale, nyscale, nzscale, nxoffset, nyoffset, nzoffset);
+
+
 				MaxList = (float *) malloc (j * sizeof (float)); // record maximum.
-	
-	
-				for (Partition = 0; Partition <= Finish - Start; Partition++) { 
+
+
+				for (Partition = 0; Partition <= Finish - Start; Partition++) {
 					for (i=0; i < DataLen; i++) {
 						Dynamics[i] = (Data[i] >= Partition);
 					}
-					
+
 					k=0;
-				// calculate complexities	  
+				// calculate complexities
 				   for (i = 0; i <= (DataLen - Window); i+= Shift) {
 						Complexity1 = ftdSelAugment(&Dynamics[i], Window);
 						if (BestDir) { // minimum complexity for both forward and reverse directions
@@ -596,7 +596,7 @@ int main(int argc, char *argv[]) {
 							//printf("\n%g %g %g\n",Complexity1,Complexity2,Complexity1-Complexity2);
 							if (Complexity1 > Complexity2 ) Complexity1 = Complexity2;
 						}
-						if (Info == FALSE) printf("%.5f ", Complexity1); 
+						if (Info == FALSE) printf("%.5f ", Complexity1);
 						else {
 							if (Binary == TRUE) printf("%.5f ", Scale*(invlogint(Complexity1))*log(2.0)/Window);//millibits/sample
 							else printf("%.5f ",  Scale*invlogint(Complexity1)/Window); //millinats/sample
@@ -605,46 +605,46 @@ int main(int argc, char *argv[]) {
 						else if (Complexity1 > MaxList[k]) MaxList[k] = Complexity1;
 						k++;
 					}
-					
-	
-				
+
+
+
 					printf("\n");
-				} // end of Partition 
-				
-			printf("\n\nz:r:maxent: %d:1: %g:%g:%g: %g:%g:%g\n", j, nxscale, nyscale, nzscale, nxoffset, nyoffset, nzoffset);
-			if (Info == FALSE) for (i = 0; i < j ; i++) printf ("%g ", MaxList[i]); 
+				} // end of Partition
+
+			printf("\n\nz:r:maxent: %ld:1: %g:%g:%g: %g:%g:%g\n", j, nxscale, nyscale, nzscale, nxoffset, nyoffset, nzoffset);
+			if (Info == FALSE) for (i = 0; i < j ; i++) printf ("%g ", MaxList[i]);
 			else {
 				if (Binary == TRUE) for (i = 0; i < j ; i++) printf("%.5f ", MaxList[i] = Scale*(invlogint(MaxList[i]))*log(2.0)/Window);//millibits/sample
 				else for (i = 0; i < j ; i++) printf("%.5f ",  MaxList[i] = Scale*invlogint(MaxList[i])/Window); //millinats/sample
 			}
-	
+
 			printf("b:r:\\ \n");
-			 
-	
+
+
 			free(Dynamicsrev);
 			free(Dynamics);
 			free (PrimeList);
 			free (EntryList);
-		
+
 		} // end surface
-		
+
 		// ********* raster calculation *************
 		if (Raster==TRUE) { //calculate the total entropy
 				HashTableSize = (Finish - Start + 1) *  Window + 255;
 			  // Allocate memory
 			  EntryList = (MATCHLISTENTRY*) malloc(sizeof (MATCHLISTENTRY) * HashTableSize);
-			  PrimeList = (CODEWORD *)malloc (((Finish - Start + 1) * Window + 2) * sizeof (CODEWORD)); 
-	
+			  PrimeList = (CODEWORD *)malloc (((Finish - Start + 1) * Window + 2) * sizeof (CODEWORD));
+
 			  Dynamics = (char *) malloc((Finish - Start + 1) * Window);
 			  Dynamicsrev = (char *) malloc((Finish - Start + 1) * Window);
 			  if ((EntryList == NULL) || (PrimeList == NULL) || (Dynamics == NULL) || (Dynamicsrev == NULL)) {printf("Error Allocating Memory for linked list\n"); return -1;}
 				j=0; for (i = 0; i <= (DataLen - Window); i+= Shift) j++;
-			  printf("\n\nz:g:partitionraster: %d:1 :%g:%g:%g :%g:%g:%g\n", j , nxscale, 0.0, 5.0 * nzscale , nxoffset, nyoffset, nzoffset);
-	
+			  printf("\n\nz:g:partitionraster: %ld:1 :%g:%g:%g :%g:%g:%g\n", j , nxscale, 0.0, 5.0 * nzscale , nxoffset, nyoffset, nzoffset);
+
 				Rasterlist = (float *) malloc (j * sizeof(float) );
 				k = 0;
 			  for (m = 0; m <= DataLen-Window  ; m+= Shift) { // set window position
-			  
+
 					j=0; l= (Finish - Start + 1) * Window;
 					for (Partition = 0; Partition <= Finish - Start; Partition++) { // raster over the whole range
 						for (i=m; i < (m+Window); i++) {
@@ -657,7 +657,7 @@ int main(int argc, char *argv[]) {
 						//printf("\n%g %g %g\n",Complexity1,Complexity2,Complexity1-Complexity2);
 						if (Complexity1 > Complexity2 ) Complexity1 = Complexity2; //take the smallest value
 					}
-					if (Info == FALSE) printf("%.5f ", Rasterlist[k++] = Complexity1); 
+					if (Info == FALSE) printf("%.5f ", Rasterlist[k++] = Complexity1);
 					 else {
 							if (Binary == TRUE) printf("%.5f ", Rasterlist[k++] = Scale*(invlogint(Complexity1))*log(2.0)/((Finish - Start + 1) * Window));//bits/sample
 							else printf("%.5f ", Rasterlist[k++] = Scale*invlogint(Complexity1)/((Finish - Start + 1) * Window)); //nats/sample
@@ -669,31 +669,31 @@ int main(int argc, char *argv[]) {
 			free (PrimeList);
 			free (EntryList);
 		}// end of raster stuff
-		
-		
+
+
 		if ((Surface == TRUE) && (Raster == TRUE)) {// output kurve
 			  j=0; for (i = 0; i <= (DataLen - Window); i+= Shift) j++; // this needs to be improved!
-	
-			  printf("\ny:g:partn_raster: %d:1 :%g:%g:%g :%g:%g:%g\n", j, nxscale, 5.0 * nzscale, 0.0  , nxoffset, nyoffset, nzoffset);
-			  for (i = 0; i < j ; i++) printf ("%g ", Rasterlist[i]); 
+
+			  printf("\ny:g:partn_raster: %ld:1 :%g:%g:%g :%g:%g:%g\n", j, nxscale, 5.0 * nzscale, 0.0  , nxoffset, nyoffset, nzoffset);
+			  for (i = 0; i < j ; i++) printf ("%g ", Rasterlist[i]);
 			  printf("\nv:f:off\nb:g:\\ \n");
-	
-			  printf("\nk:y:maxent_vs_raster: %d:2 :%g:%g:%g :%g:%g:%g\n", j, nxscale, 5.0*nzscale, nzscale  , nxoffset, nyoffset, nzoffset);
-			  for (i = 0; i < j ; i++) printf ("%g ", Rasterlist[i]); 
+
+			  printf("\nk:y:maxent_vs_raster: %ld:2 :%g:%g:%g :%g:%g:%g\n", j, nxscale, 5.0*nzscale, nzscale  , nxoffset, nyoffset, nzoffset);
+			  for (i = 0; i < j ; i++) printf ("%g ", Rasterlist[i]);
 			  printf("\n");
-			  for (i = 0; i < j ; i++) printf ("%g ", MaxList[i]); 
+			  for (i = 0; i < j ; i++) printf ("%g ", MaxList[i]);
 			  printf("\np:.:points\nw 1.0\n");
-	
+
 		//	  j=0; for (i = 0; i <= (DataLen - Window); i+= Shift) j++; // this needs to be improved!
-			  printf("\nk:y:maxent_vs_raster: %d:2 :%g:%g:%g :%g:%g:%g\n", j, nxscale, 5.0*nzscale, nzscale , nxoffset, nyoffset, nzoffset);
-			  for (i = 0; i < j ; i++) printf ("%g ", Rasterlist[i]); 
+			  printf("\nk:y:maxent_vs_raster: %ld:2 :%g:%g:%g :%g:%g:%g\n", j, nxscale, 5.0*nzscale, nzscale , nxoffset, nyoffset, nzoffset);
+			  for (i = 0; i < j ; i++) printf ("%g ", Rasterlist[i]);
 			  printf("\n");
-			  for (i = 0; i < j ; i++) printf ("%g ", MaxList[i]); 
+			  for (i = 0; i < j ; i++) printf ("%g ", MaxList[i]);
 			  printf("\nw .3\n");
-	
+
 		}
 	} // end of count1>1 && count2 =1;
-	
+
 	if (defaultviewing == TRUE) printf("\nO: 339:329\nL: 298:29: 353:1: 0:0\nC: 1.0:1.0:0.0: 1.0:0.0:0.0: 0.0\nI -1.0 0.0 0.01 0.0 -1.0\n");
 
 
@@ -701,9 +701,7 @@ int main(int argc, char *argv[]) {
 
 	if (Raster==TRUE) free(Rasterlist);
 	if (Surface==TRUE) free(MaxList);
-	
+
 	free(Data);
     return 0;
 }
-
-

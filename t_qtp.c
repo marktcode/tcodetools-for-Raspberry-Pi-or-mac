@@ -1,27 +1,28 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 
 
 #define MAX_STEPSAMPLE_INTERVAL 65536  // The maximum interval (2^16) for step information sample
 
 typedef struct CODEWORDLIST  // match lists links same codewords based on IDs. string list links all codewords
-{  
+{
     unsigned long CodeWordID;
-    struct CODEWORDLIST *NextCodeWordInMatchList;  
-    struct CODEWORDLIST *PreviousCodeWordInMatchList;    
-    struct CODEWORDLIST *NextCodeWordInStringList;    
-    struct CODEWORDLIST *PreviousCodeWordInStringList;  
-    
-}CODEWORD; 
+    struct CODEWORDLIST *NextCodeWordInMatchList;
+    struct CODEWORDLIST *PreviousCodeWordInMatchList;
+    struct CODEWORDLIST *NextCodeWordInStringList;
+    struct CODEWORDLIST *PreviousCodeWordInStringList;
+
+}CODEWORD;
 
 typedef struct MATCHLISTENTRY_DEF  // entry list stores heads of all match lists. These are dummy heads, no real data is stored here
-{  
+{
     unsigned long CodeWordID;
-    struct CODEWORDLIST *NextCodeWordInMatchList;   
+    struct CODEWORDLIST *NextCodeWordInMatchList;
     struct CODEWORDLIST *PreviousCodeWordInMatchList;
-    
+
 }MATCHLISTENTRY;
 
 
@@ -48,7 +49,7 @@ typedef struct MATCHLISTENTRY_DEF  // entry list stores heads of all match lists
   // Command Line Flags
   int FromFile = FALSE,  FromFileRaw = FALSE;
   char *FileName = NULL;
-  
+
 
   // Data Array
 	long DataLen;
@@ -68,9 +69,9 @@ typedef struct MATCHLISTENTRY_DEF  // entry list stores heads of all match lists
 	long HashTableSize;
 
 
-    long Tprefix_N_Indicate;  
-    long NextAvailableEntry; 
-    long FirstNewEntry_PerPass;  
+    long Tprefix_N_Indicate;
+    long NextAvailableEntry;
+    long FirstNewEntry_PerPass;
     CODEWORD *PrimeList;
 
   // T-information
@@ -91,47 +92,47 @@ long FileSize(char *FileName) {
   float input, max = 0.0, min = 0.0, avg = 0.0;
 	int val;
 	long	j;
-	
+
 	  DataLen = 0;
 	  f = fopen(FileName, "r");
 
 	  while (EOF != fscanf(f, "%f", &input)) {
 		avg += input;
 	  	if (DataLen == 0) {max = min = input;}
-	  	else {	  	
+	  	else {
 			if (input > max) max = input;
 			if (input < min) min = input;
 			DataLen++;
 		}
 	  }
 	  fclose(f);
-	  
-	  avg = avg/(float) DataLen; 
-		max -= avg; 
+
+	  avg = avg/(float) DataLen;
+		max -= avg;
 		min -= avg;
 	  	if (max - min < 0) max = -min; // cover the range;
 		Data = (char *) malloc(DataLen * sizeof(int));
-	  	j = 0; 
+	  	j = 0;
 	  	max = max/10000.0; // scale max to 10000
 	  	  if (DataLen) printf("#%f %f %f %d\n", max, avg, min, DataLen);
 	  f = fopen(FileName, "r"); // now read in the data again
 	  while (EOF != fscanf(f, "%f", &input)) {
 		val = (int) (((float) input - avg)/max); // printf("debug %f %d\n", input, val);
-		Data[j++] = (char) (val >> 8) & 255  ; 
-		Data[j++] = (char) val & 255; 
+		Data[j++] = (char) (val >> 8) & 255  ;
+		Data[j++] = (char) val & 255;
 	  }
 	  fclose(f);
-	
+
 }
 */
 
 
-double ei(double x) 
+double ei(double x)
 {
         void nrerror(char error_text[]);
         int k;
         double fact,prev,sum,term;
-                
+
         if (x <= 0.0) nrerror("Bad argument in ei");
         if (x < FPMIN) return log(x)+EULER;
         if (x <= -log(EPS)) {
@@ -171,11 +172,11 @@ void nrerror(char error_text[])
 
 double logint(double x) {
         return ei(log(x));
-}       
+}
 
 double invlogint(double x) {
         double lb, ub, tmp1, tmp2, g1;
-        lb = 1.0+EPS;   
+        lb = 1.0+EPS;
         if (x < logint(lb)) {
                 nrerror("argument too small for fast algorithm");
         }
@@ -189,7 +190,7 @@ double invlogint(double x) {
         g1 = 1/log(lb);
         /* x is now between logint(lb) and logint(ub) */
         /* printf("lb:%g ub:%g tmp1:%g tmp2:%g g1:%g\n",lb,ub,tmp1,tmp2,g1); */
-        while (tmp2-tmp1 > EPS) {       
+        while (tmp2-tmp1 > EPS) {
                 /* printf("lb:%g ub:%g tmp1:%g tmp2:%g g1:%g\n",lb,ub,tmp1,tmp2,g1);
                 printf("Iteration\n"); */
                 ub = (x - tmp1) * (ub - lb)/(tmp2 - tmp1) + lb;
@@ -202,12 +203,12 @@ double invlogint(double x) {
         else return (ub-.7582221);
 }
 
-/**********************************************************************************/
-/* New calc
+/******************************************************************************
+ * New calc
+ *
+ ******************************************************************************/
 /*
-/**********************************************************************************/
-/*
-   
+
 double nwSelAugment(char *buffer, long bufflen) { //back to old bound
 
   long Pos, FirstPos, LastPos;
@@ -226,9 +227,9 @@ double nwSelAugment(char *buffer, long bufflen) { //back to old bound
 
 	int	k;
 
-	
+
 	Head = 0;
-	Tail = bufflen - 1;	  
+	Tail = bufflen - 1;
 	for (k = 0; k < bufflen; k++) {
 	    Next[k] = k + 1;
 	    Last[k] = k - 1;
@@ -245,7 +246,7 @@ while (Head != Tail) {
 	  if (Tail != EMPTY) {
 	    tPos = Prefix = Last[Tail];
 	    K = 0;
-	    
+
 		  if (Next[tPos] != EMPTY)
 		    Len = Next[tPos] - tPos;
 		  else
@@ -269,11 +270,11 @@ while (Head != Tail) {
 		  }
 //debug	printf("Got here dn %d\n",dn);
 
-	    
+
 	    while ((tPos != EMPTY) && (dn)) {
 	      tPos = Last[tPos];
 	      K++;
-	      
+
 		  if (Next[tPos] != EMPTY)
 		    Len = Next[tPos] - tPos;
 		  else
@@ -295,9 +296,9 @@ while (Head != Tail) {
 				else Loop2++;
 		     }
 		  }
-	      
+
 	    }
-	    
+
 //debug	 printf("Got past while  dn %d   tPos %d   K %d \n",dn, tPos, K);
 
 
@@ -332,7 +333,7 @@ while (Head != Tail) {
 		     }
 		  }
 //debug	 if (Pos == bufflen - 1) printf("comp %d \n",comp);
-		 
+
 		 if(comp == TRUE) {
 	      if (Matching == TRUE) {
 	        Matched++;
@@ -340,7 +341,7 @@ while (Head != Tail) {
 	          Matching = FALSE;
 	          LastPos = Pos;
 	          Pos = Next[Pos];
-	          
+
 //  Combine(FirstPos, LastPos);
 			  Following = Next[LastPos];
 
@@ -377,7 +378,7 @@ while (Head != Tail) {
 	        Matching = FALSE;
 	        LastPos = Pos;
 	        Pos = Next[Pos];
-	        
+
 //  Combine(FirstPos, LastPos);
 			  Following = Next[LastPos];
 
@@ -399,7 +400,7 @@ while (Head != Tail) {
 			    Last[Following] = FirstPos;
 // end Combine
 
-	      } 
+	      }
 	      else  // if  Matching == FALSE
 	        Pos = Next[Pos];
 	    }  // end  if  comp
@@ -410,14 +411,14 @@ while (Head != Tail) {
 	return(Complexity/log(2.0));
 }
 */
-/**********************************************************************************/
-/* New quickcalc
-/*
-/**********************************************************************************/
+/******************************************************************************
+ * New quickcalc
+ *
+ ******************************************************************************/
 
 
 double ftdSelAugment ( char *buffer, long bufflen)
-{  
+{
 
     long Loop, StepCount, HashCodeTemp, Length_SuffixString_ParsedIntoOneCodeword, StepInfoPrintCount;
 	long TprefixLength, HashCode_Tprefix, Count_TprefixMatch, TempID, TempEntry;
@@ -425,30 +426,30 @@ double ftdSelAugment ( char *buffer, long bufflen)
 	char *pc_TprefixAddress;
 	CODEWORD *CodeWordBegin, *PrimeListTemp, *RealEndOfPrimeList, *Node_Tprefix, *HeadOfCurrentMatchList;
 	CODEWORD *CodeWordInMatchList;
-	
+
     Complexity = 0;
     Tprefix_N_Indicate = 256;												// entry reserved for p^k_n
     NextAvailableEntry = 257; 												// points to next available entry
     FirstNewEntry_PerPass = NextAvailableEntry;  							// entry for first new codeword in each pass
     EntryList[Tprefix_N_Indicate].CodeWordID = 0;
 
-    PrimeListEnd = NULL; 
+    PrimeListEnd = NULL;
 
 
 /********* Initialize head node *********/
-    PrimeList[0].NextCodeWordInStringList = PrimeList + 1;   
+    PrimeList[0].NextCodeWordInStringList = PrimeList + 1;
     PrimeList[0].PreviousCodeWordInStringList = NULL;
-    
-/********* Initialize end node *********/    
+
+/********* Initialize end node *********/
     PrimeList[bufflen].NextCodeWordInStringList = NULL;
-    PrimeList[bufflen].PreviousCodeWordInStringList = PrimeList + bufflen - 1; 
-    
+    PrimeList[bufflen].PreviousCodeWordInStringList = PrimeList + bufflen - 1;
+
     for (Loop = 0; Loop < 256; Loop++)  									// initialize first 256 entries (0--255)
     {
-        EntryList[Loop].PreviousCodeWordInMatchList = (CODEWORD*)(EntryList + Loop); 
-        EntryList[Loop].CodeWordID = 0; 
+        EntryList[Loop].PreviousCodeWordInMatchList = (CODEWORD*)(EntryList + Loop);
+        EntryList[Loop].CodeWordID = 0;
     }
-    
+
     for (Loop= 1; Loop < bufflen ; Loop++)   							// create lists. Pointers in NextCodeWordInMatchList and NextCodeWordInStringList should have same values
     {
         PrimeList[Loop].NextCodeWordInStringList = PrimeList + Loop + 1;
@@ -459,11 +460,11 @@ double ftdSelAugment ( char *buffer, long bufflen)
     StepCount = 1;   													// includes literal character
 
     PrimeListTemp = PrimeList;
-    for (Loop= 0; Loop < bufflen - 1; Loop++)  
+    for (Loop= 0; Loop < bufflen - 1; Loop++)
     {
-        HashCodeTemp = (unsigned char)(buffer[Loop]);  
+        HashCodeTemp = (unsigned char)(buffer[Loop]);
         PrimeListTemp->NextCodeWordInStringList->CodeWordID = HashCodeTemp;
-        
+
 																			/*********** Add to the list **********/
         PrimeListTemp->NextCodeWordInStringList->PreviousCodeWordInMatchList =EntryList[HashCodeTemp].PreviousCodeWordInMatchList;
         PrimeListTemp->NextCodeWordInStringList->NextCodeWordInMatchList = (CODEWORD*)&(EntryList[HashCodeTemp]);
@@ -482,7 +483,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
 
     				/*********** start T-decomposition ***********/
 
-    for (;;)  
+    for (;;)
     {
         if (PrimeList->NextCodeWordInStringList->NextCodeWordInStringList == NULL) // Check if process has finished (i.e. if these is only one codeword in string)
             break;
@@ -492,7 +493,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
 
          			/*********** (1)Get the T-prefix ********** */
         Node_Tprefix = PrimeListEnd->PreviousCodeWordInStringList;
-        pc_TprefixAddress = buffer + (Node_Tprefix - PrimeList) - 1;  
+        pc_TprefixAddress = buffer + (Node_Tprefix - PrimeList) - 1;
         TprefixLength = RealEndOfPrimeList - Node_Tprefix;
         HashCode_Tprefix = (Node_Tprefix->CodeWordID);
         HeadOfCurrentMatchList = Node_Tprefix->NextCodeWordInMatchList;  /*Point to the dummy head of the hash list.*/
@@ -501,22 +502,22 @@ double ftdSelAugment ( char *buffer, long bufflen)
         while (Node_Tprefix->PreviousCodeWordInStringList->PreviousCodeWordInStringList != NULL)
         {
             if (Node_Tprefix->PreviousCodeWordInMatchList == Node_Tprefix->PreviousCodeWordInStringList)
-            {  
+            {
                 Node_Tprefix = Node_Tprefix->PreviousCodeWordInStringList;
                 K++;
             }
             else
                 break;
         }
-        RealEndOfPrimeList = Node_Tprefix; 
-  
+        RealEndOfPrimeList = Node_Tprefix;
+
         Node_Tprefix->PreviousCodeWordInMatchList->NextCodeWordInMatchList = HeadOfCurrentMatchList;
         HeadOfCurrentMatchList->PreviousCodeWordInMatchList = Node_Tprefix->PreviousCodeWordInMatchList;
         Node_Tprefix->PreviousCodeWordInStringList->NextCodeWordInStringList = PrimeListEnd;
         PrimeListEnd->PreviousCodeWordInStringList = Node_Tprefix->PreviousCodeWordInStringList;
 
-        Complexity += log((double)(K + 1)); 
-        
+        Complexity += log((double)(K + 1));
+
         			/*********** (3)Search from the beginning of the match list to find the codeword that matches the T-prefix ***********/
         CodeWordInMatchList = HeadOfCurrentMatchList;  /*The head of the match list.*/
 
@@ -527,7 +528,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
                                                                              			// once the new codeword does not mathc the T-prefix
         																				// Now search really begins from begining of corresponding match list
         																				// The match list helps to locate the codeword in the string list
-        while (CodeWordInMatchList != HeadOfCurrentMatchList)  
+        while (CodeWordInMatchList != HeadOfCurrentMatchList)
         {
             PrimeListTemp = CodeWordInMatchList;
             Count_TprefixMatch = 1;  													// number of adjacent codewords matching the T-prefix
@@ -536,10 +537,10 @@ double ftdSelAugment ( char *buffer, long bufflen)
 
             for (;;)  																	// matched codeword found. Here we need remove some codewords from the match list and string list
                         																// New merged codeword will be added to the corresponding match list. Check in the string list
-            {    
+            {
                 if (HashCode_Tprefix == PrimeListTemp->CodeWordID)
                 { 																		// The current codeword DOES match the T-prefix
-                    Count_TprefixMatch++;  
+                    Count_TprefixMatch++;
                     if (Count_TprefixMatch <= K)
                     {
                         PrimeListTemp = PrimeListTemp->NextCodeWordInStringList;
@@ -586,7 +587,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
                             TempEntry = NextAvailableEntry;
                             EntryList[TempEntry].PreviousCodeWordInMatchList = (CODEWORD*)(EntryList + TempEntry);
                             EntryList[TempEntry].CodeWordID= 0;
-                                
+
                             NextAvailableEntry++;
                         }
                         else
@@ -596,10 +597,10 @@ double ftdSelAugment ( char *buffer, long bufflen)
                     }
                     CodeWordBegin->CodeWordID = TempEntry;  							// new ID
                     { 																	// if not the last node in the match list
-                        PrimeListTemp->PreviousCodeWordInMatchList->NextCodeWordInMatchList = PrimeListTemp->NextCodeWordInMatchList; 
+                        PrimeListTemp->PreviousCodeWordInMatchList->NextCodeWordInMatchList = PrimeListTemp->NextCodeWordInMatchList;
                         PrimeListTemp->NextCodeWordInMatchList->PreviousCodeWordInMatchList = PrimeListTemp->PreviousCodeWordInMatchList;
                     }
-                    
+
 																						/*********** Add to the lists ***********/
                     CodeWordBegin->PreviousCodeWordInMatchList =EntryList[TempEntry].PreviousCodeWordInMatchList;
                     CodeWordBegin->NextCodeWordInMatchList = (CODEWORD*)(&(EntryList[TempEntry]));
@@ -608,7 +609,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
 																						/****************************************/
                     CodeWordBegin->NextCodeWordInStringList = PrimeListTemp->NextCodeWordInStringList;
                     PrimeListTemp->NextCodeWordInStringList->PreviousCodeWordInStringList = CodeWordBegin;
-                
+
                     break;
                 }
             }																			// end of for (;;)
@@ -629,7 +630,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
 int main(int argc, char *argv[]) {
 
   int *Dataint, Partition, Division, defaultviewing = FALSE, Raster = FALSE, Surface=TRUE, Maximum=FALSE, String=FALSE;
-  int Loop, PRange = 50, PIncr = 1, DataOut=FALSE, LogPart=FALSE, BestDir=FALSE,  val, autoset = TRUE, minset=FALSE, midset=FALSE, maxset=FALSE ; 
+  int Loop, PRange = 50, PIncr = 1, DataOut=FALSE, LogPart=FALSE, BestDir=FALSE,  val, autoset = TRUE, minset=FALSE, midset=FALSE, maxset=FALSE ;
   long	i, j, k, l, m, offset;
   long	Window = 10000, Shift = 1000;
   float Threshold, level, Scale=1.0, input, avg, max, min, mid;
@@ -673,8 +674,8 @@ int main(int argc, char *argv[]) {
       return 0;
     }
     else if ((strcmp(argv[Loop], "-f") == 0) || (strcmp(argv[Loop], "-F")== 0 )){
-      FromFile = TRUE;     
-      if (argc > (Loop+1)) {      
+      FromFile = TRUE;
+      if (argc > (Loop+1)) {
         FileName = argv[Loop + 1];
         Loop++;
       }
@@ -686,8 +687,8 @@ int main(int argc, char *argv[]) {
       String=FALSE;
     }
     else if (strcmp(argv[Loop], "-s") == 0) {
-      FromFile = TRUE;     
-      if (argc > (Loop+1)) {      
+      FromFile = TRUE;
+      if (argc > (Loop+1)) {
         FileName = argv[Loop + 1];
         Loop++;
       }
@@ -703,13 +704,13 @@ int main(int argc, char *argv[]) {
       defaultviewing = FALSE;
     }
     else if (strcmp(argv[Loop], "-w") == 0) {  // window size
-      sscanf(argv[Loop + 1], "%d", &Window);
+      sscanf(argv[Loop + 1], "%ld", &Window);
       Loop++;
-      sscanf(argv[Loop + 1], "%d", &Shift);
+      sscanf(argv[Loop + 1], "%ld", &Shift);
       Loop++;
     }
     else if (strcmp(argv[Loop], "-ws") == 0) {  // shift window increment
-      sscanf(argv[Loop + 1], "%d", &Shift);
+      sscanf(argv[Loop + 1], "%ld", &Shift);
       Loop++;
       Window = 2 * Shift;
     }
@@ -779,7 +780,7 @@ int main(int argc, char *argv[]) {
       Loop++;
 	  minset=TRUE;
     }
-    else if (strcmp(argv[Loop], "-xyz") == 0) {  // 
+    else if (strcmp(argv[Loop], "-xyz") == 0) {  //
       sscanf(argv[Loop + 1], "%f", &xscale);
       Loop++;
       sscanf(argv[Loop + 1], "%f", &yscale);
@@ -805,7 +806,7 @@ int main(int argc, char *argv[]) {
     }
 
     }
-    
+
     if ((FromFile == TRUE) && (String == FALSE))  {
  	  DataLen = 0;
 
@@ -818,35 +819,35 @@ int main(int argc, char *argv[]) {
 	  		if (maxset == FALSE) max = input;
 	  		if (minset == FALSE) min = input;
 	  	}
-	  	else {	  	
+	  	else {
 			if ((input > max) & (maxset == FALSE)) max = input;
 			if ((input < min) & (minset == FALSE))  min = input;
 		}
 		DataLen++;
 	  }
 	  fclose(f);
-	  
+
 
 		avg = avg/(float) DataLen;
-		printf("#qtp -f %s -p %d -ps %d -w %d -ws %d \n",FileName, PRange, PIncr, Window, Shift);
+		printf("#qtp -f %s -p %d -ps %d -w %ld -ws %ld \n",FileName, PRange, PIncr, Window, Shift);
 		if (midset==FALSE) {
 			if (autoset==FALSE) mid=(max+min)/2;
 			else mid = avg;
 		}
-	
-		if (DataLen) printf("#%f %f %f %f %d\n", min, avg, max, mid, DataLen);
-		max -= mid; 
+
+		if (DataLen) printf("#%f %f %f %f %ld\n", min, avg, max, mid, DataLen);
+		max -= mid;
 		min -= mid;
 		max = fabs(max-min)/2000.0; // scale max to 1000
 //		Data = (char *) malloc(2*DataLen);
 
 		Data = (int *) malloc(DataLen * sizeof(int));
-		j = 0; 
+		j = 0;
 	  f = fopen(FileName, "r"); // now read in the data again
 	  while (EOF != fscanf(f, "%f", &input)) {
 		Data[j++] = (int) (((float) input - mid)/max); // printf("debug %f %d\n", input, val);
-//		Data[j++] = (char) (val >> 8) & 255  ; 
-//		Data[j++] = (char) val & 255; 
+//		Data[j++] = (char) (val >> 8) & 255  ;
+//		Data[j++] = (char) val & 255;
 	  }
 	  fclose(f);
 	}
@@ -871,12 +872,12 @@ int main(int argc, char *argv[]) {
 		Dynamicsrev = (char *) malloc(DataLen);
 		if ((EntryList == NULL) || (PrimeList == NULL) || (Dynamics == NULL) || (Dynamicsrev == NULL)) {printf("Error Allocating Memory for linked list\n"); return -1;}
 		Complexity = ftdSelAugment(&Dynamics[0], DataLen);
-		if (Info == FALSE) printf("%.5f\n", Complexity); 
+		if (Info == FALSE) printf("%.5f\n", Complexity);
 		 else {
 			if (Binary == TRUE) printf("%.5f\n", Scale*(invlogint(Complexity))*log(2.0)/DataLen);//millibits/sample
 			else printf("%.5f\n", Scale*invlogint(Complexity)/DataLen); //millinats/sample
 		 }
-		
+
 		free(Dynamicsrev);
 		free(Dynamics);
 		free (PrimeList);
@@ -896,13 +897,13 @@ int main(int argc, char *argv[]) {
    		  Dynamicsrev = (char *) malloc(Window);
   		  if ((EntryList == NULL) || (PrimeList == NULL) || (Dynamics == NULL) || (Dynamicsrev == NULL)) {printf("Error Allocating Memory for linked list\n"); return -1;}
 			j=0; for (i = 0; i <= (DataLen - Window); i+= Shift) j++;
-			printf("s:partiondata\n%d %d\n%f %f %f\n%f %f %f\n", j, (2*PRange)/PIncr + 1, xscale, yscale, zscale, xoffset, yoffset, zoffset);
+			printf("s:partiondata\n%ld %d\n%f %f %f\n%f %f %f\n", j, (2*PRange)/PIncr + 1, xscale, yscale, zscale, xoffset, yoffset, zoffset);
 
 			for (Partition = -PRange; Partition <= PRange; Partition += PIncr) { // assumes PRange
 				for (i=0; i < DataLen; i++) {
 					Dynamics[i] = (Data[i] >= Partition);
 				}
-			// calculate complexities	  
+			// calculate complexities
 			   for (i = 0; i <= (DataLen - Window); i+= Shift) {
 					Complexity1 = ftdSelAugment(&Dynamics[i], Window);
 					if (BestDir) { // minimum complexity for both forward and reverse directions
@@ -911,41 +912,41 @@ int main(int argc, char *argv[]) {
 						//printf("\n%f %f %f\n",Complexity1,Complexity2,Complexity1-Complexity2);
 						if (Complexity1 > Complexity2 ) Complexity1 = Complexity2;
 					}
-					if (Info == FALSE) printf("%.5f ", Complexity1); 
+					if (Info == FALSE) printf("%.5f ", Complexity1);
 					 else {
 						if (Binary == TRUE) printf("%.5f ", Scale*(invlogint(Complexity1))*log(2.0)/Window);//millibits/sample
 						else printf("%.5f ",  Scale*invlogint(Complexity1)/Window); //millinats/sample
 					 }
 				}
 
-			
+
 				printf("\n");
-			} // end of Partition 
-			
+			} // end of Partition
+
 		free(Dynamicsrev);
 		free(Dynamics);
 		free (PrimeList);
 		free (EntryList);
-	
+
 	} // end surface
-   	
+
     // ********* raster calculation *************
 	if (Raster==TRUE) { //calculate the total entropy
 			HashTableSize = (2*PRange/PIncr + 1) *  Window + 255;
 		  // Allocate memory
 		  EntryList = (MATCHLISTENTRY*) malloc(sizeof (MATCHLISTENTRY) * HashTableSize);
-		  PrimeList = (CODEWORD *)malloc (((2*PRange/PIncr + 1) * Window + 2) * sizeof (CODEWORD)); 
+		  PrimeList = (CODEWORD *)malloc (((2*PRange/PIncr + 1) * Window + 2) * sizeof (CODEWORD));
 
 		  Dynamics = (char *) malloc((2*PRange/PIncr + 1) * Window);
 		  Dynamicsrev = (char *) malloc((2*PRange/PIncr + 1) * Window);
 		  if ((EntryList == NULL) || (PrimeList == NULL) || (Dynamics == NULL) || (Dynamicsrev == NULL)) {printf("Error Allocating Memory for linked list\n"); return -1;}
 			j=0; for (i = 0; i <= (DataLen - Window); i+= Shift) j++;
-		  printf("z:g:partionraster\n%d 1\n%f %f %f\n%f %f %f\n", j , xscale, yscale, zscale * 2.5, xoffset, yoffset, zoffset);
+		  printf("z:g:partionraster\n%ld 1\n%f %f %f\n%f %f %f\n", j , xscale, yscale, zscale * 2.5, xoffset, yoffset, zoffset);
 
 		    first = (float *) malloc (j * sizeof(float) );
 			k = 0;
 		  for (m = 0; m <= DataLen-Window  ; m+= Shift) { // set window position
-		  
+
 				j=0; l= (2*PRange/PIncr + 1) * Window;
 				for (Partition = -PRange; Partition <= PRange; Partition += PIncr) { // raster over the whole range
 					for (i=m; i < (m+Window); i++) {
@@ -958,7 +959,7 @@ int main(int argc, char *argv[]) {
 					//printf("\n%f %f %f\n",Complexity1,Complexity2,Complexity1-Complexity2);
 					if (Complexity1 > Complexity2 ) Complexity1 = Complexity2; //take the smallest value
 				}
-				if (Info == FALSE) printf("%.5f ", first[k++] = Complexity1); 
+				if (Info == FALSE) printf("%.5f ", first[k++] = Complexity1);
 				 else {
 						if (Binary == TRUE) printf("%.5f ", first[k++] = Scale*(invlogint(Complexity1))*log(2.0)/((2*PRange/PIncr + 1) * Window));//bits/sample
 						else printf("%.5f ", first[k++] = Scale*invlogint(Complexity1)/((2*PRange/PIncr + 1) * Window)); //nats/sample
@@ -970,34 +971,34 @@ int main(int argc, char *argv[]) {
 		free (PrimeList);
 		free (EntryList);
 	}// end of raster stuff
-	
+
 	// **************** calculate the maximum for the raster ***************
 	if (Maximum==TRUE) { //calculate the maximum entropy
 
 		  // Allocate memory
 		  HashTableSize = Window + 255;
 		  EntryList = (MATCHLISTENTRY*) malloc(sizeof (MATCHLISTENTRY) * HashTableSize);
-		  PrimeList = (CODEWORD *)malloc ((Window + 2) * sizeof (CODEWORD)); 
+		  PrimeList = (CODEWORD *)malloc ((Window + 2) * sizeof (CODEWORD));
 		  Dynamics = (char *) malloc(Window);
 		  Dynamicsrev = (char *) malloc(Window);
 		  if ((EntryList == NULL) || (PrimeList == NULL) || (Dynamics == NULL) || (Dynamicsrev == NULL)) {printf("Error Allocating Memory for linked list\n"); return -1;}
 		  j=0; for (i = 0; i <= (DataLen - Window); i+= Shift) j++; // This needs to be sorted
-		  printf("z:r:maxentropy\n%d 1\n%f %f %f\n%f %f %f\n", j, xscale, yscale, zscale  , xoffset, yoffset, zoffset);
-		  
+		  printf("z:r:maxentropy\n%ld 1\n%f %f %f\n%f %f %f\n", j, xscale, yscale, zscale  , xoffset, yoffset, zoffset);
+
 		  k = 0;
 		  second = (float *) malloc (j * sizeof(float));
-		  
+
 		  for (m = 0; m <= DataLen-Window  ; m+= Shift) { // set window position
 				maxComplexity = 0.0;
-		  
+
 				for (Partition = -PRange; Partition <= PRange; Partition += PIncr) { // raster over the whole range
 					j=0; l= Window;
 					for (i=m; i < (m+Window); i++) {
-						Dynamicsrev[--l] = (Dynamics[j++] = (Data[i] >= Partition)); 
+						Dynamicsrev[--l] = (Dynamics[j++] = (Data[i] >= Partition));
 						//printf("%d", Dynamics[j-1]);
 					} // step along data
 					if (Partition == 0) { maxComplexity = ftdSelAugment(&Dynamics[0], Window); }
-					else { 
+					else {
 						Complexity1 = ftdSelAugment(&Dynamics[0], Window);
 						if (BestDir) { // minimum complexity for both forward and reverse directions
 							Complexity2 = ftdSelAugment(&Dynamicsrev[0], Window);
@@ -1006,47 +1007,42 @@ int main(int argc, char *argv[]) {
 						if (Complexity1 > maxComplexity) maxComplexity = Complexity1;
 					} // raster step
 				} // partition increment
-				if (Info == FALSE) printf("%.5f ", second[k++] = maxComplexity); 
+				if (Info == FALSE) printf("%.5f ", second[k++] = maxComplexity);
 				 else {
 						if (Binary == TRUE) printf("%.5f ", second[k++] = Scale*(invlogint(maxComplexity))*log(2.0)/Window);//millibits/sample
 						else printf("%.5f ", second[k++] = Scale*invlogint(maxComplexity)/Window); //millinats/sample
 				}
-		}// window shift 
+		}// window shift
 				printf("\n");
 		free(Dynamicsrev);
 		free(Dynamics);
 		free (PrimeList);
 		free (EntryList);
-	} // end of maxcalc    
-	
+	} // end of maxcalc
+
 	if ((Maximum == TRUE) & (Raster == TRUE)) {// output kurve
 		  j=0; for (i = 0; i <= (DataLen - Window); i+= Shift) j++; // this needs to be improved!
 
-		  printf("y:g:raster\n%d 1\n%f %f %f\n%f %f %f\n", j, xscale, 2.5 * zscale, yscale  , xoffset, yoffset, zoffset);
-		  for (i = 0; i < j ; i++) printf ("%f ", first[i]); 
+		  printf("y:g:raster\n%ld 1\n%f %f %f\n%f %f %f\n", j, xscale, 2.5 * zscale, yscale  , xoffset, yoffset, zoffset);
+		  for (i = 0; i < j ; i++) printf ("%f ", first[i]);
 		  printf("\n");
 
-		  printf("k:p:maxent_vs_raster\n%d 2\n%f %f %f\n%f %f %f\n", j, xscale, 2.5 * zscale, zscale  , xoffset, yoffset, zoffset);
-		  for (i = 0; i < j ; i++) printf ("%f ", second[i]); 
+		  printf("k:p:maxent_vs_raster\n%ld 2\n%f %f %f\n%f %f %f\n", j, xscale, 2.5 * zscale, zscale  , xoffset, yoffset, zoffset);
+		  for (i = 0; i < j ; i++) printf ("%f ", second[i]);
 		  printf("\n");
-		  for (i = 0; i < j ; i++) printf ("%f ", first[i]); 
+		  for (i = 0; i < j ; i++) printf ("%f ", first[i]);
 		  printf("\np:.:points\nw 1.0\n");
 
 		  j=0; for (i = 0; i <= (DataLen - Window); i+= Shift) j++; // this needs to be improved!
-		  printf("k:p:maxent_vs_raster\n%d 2\n%f %f %f\n%f %f %f\n", j, xscale, 2.5 * zscale, zscale  , xoffset, yoffset, zoffset);
-		  for (i = 0; i < j ; i++) printf ("%f ", second[i]); 
+		  printf("k:p:maxent_vs_raster\n%ld 2\n%f %f %f\n%f %f %f\n", j, xscale, 2.5 * zscale, zscale  , xoffset, yoffset, zoffset);
+		  for (i = 0; i < j ; i++) printf ("%f ", second[i]);
 		  printf("\n");
-		  for (i = 0; i < j ; i++) printf ("%f ", first[i]); 
+		  for (i = 0; i < j ; i++) printf ("%f ", first[i]);
 		  printf("\nw .3\n");
-
-	
 	}
-	
-	
+
 	if (defaultviewing == TRUE) printf("\nO 339 329\nL 298 29\nC -7.300 1.10 0.00 0.00\nI -1.0 0.0 0.01 0.0 -1.0\n");
 
 	free(Data);
-    return 0;
+  return 0;
 }
-
-

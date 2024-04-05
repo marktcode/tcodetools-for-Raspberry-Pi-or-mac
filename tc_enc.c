@@ -1,8 +1,8 @@
 /*************************************************************************************
-								
-	Program:		Encode	
+
+	Program:		Encode
 	Written by:	Scott Wackrow
-	Date:		Jan 1995	
+	Date:		Jan 1995
 
 *************************************************************************************/
 #include 	"Incs.c"
@@ -34,10 +34,12 @@ DeplnType depln;
 
 	for (i=1; i<argc; i++)
 		if (argv[i] != NULL)
+		{
 			if ( PDT == -1 )						/* if PDT not yet found then this is it */
 				sscanf(argv[i], "%d", &PDT);
 			else							/* otherwise its the expansion parameter */
 				sscanf(argv[i], "%d", &expansion);
+		}
 
 	if (PDT < 0) {
 		printf ("error: invalid PDT\n");
@@ -54,7 +56,7 @@ DeplnType depln;
 	if (heading == TRUE) {
 		printf ("\nFile: %s\n", file );
 		printf("PDT: %d\n", PDT);
-		printf("expansion: %d\n", expansion);	
+		printf("expansion: %d\n", expansion);
 	}
 
 /*  load the file */
@@ -75,7 +77,7 @@ DeplnType depln;
 		printf ("error: invalid PDT\n");
 		exit (-1);
 	}
-	
+
 	for (i=1; i<= expansion; i++) {								/* get prefix expansion times */
 			length = Encode (&depln, codeP, &prefix[position] );
 			position += length;
@@ -87,7 +89,7 @@ DeplnType depln;
 		printf ("%s", prefix);
 
 /* dispose working space */
-	
+
 	DisposeCode(&codeP);
 	exit(0);
 }
