@@ -40,7 +40,7 @@
   int CalculateTInfo = FALSE;
   int ReverseData = FALSE;
   int Binary = FALSE;
-  
+
 
   // Data Array
   long DataLen;
@@ -60,18 +60,18 @@
   double Complexity = 0.0;
   double LastComplexity = 0.0;
   int StartFlag = FALSE, whichprocess = NORMAL;
-  
+
   // T-information
   double LastInfo = 0;
   long LastInfoPos = 0;
   long OldPos = 0;
-    
-double ei(double x) 
+
+double ei(double x)
 {
         void nrerror(char error_text[]);
         int k;
         double fact,prev,sum,term;
-                
+
         if (x <= 0.0) nrerror("Bad argument in ei");
         if (x < FPMIN) return log(x)+EULER;
         if (x <= -log(EPS)) {
@@ -111,11 +111,11 @@ void nrerror(char error_text[])
 
 double logint(double x) {
         return ei(log(x));
-}       
+}
 
 double invlogint(double x) {
         double lb, ub, tmp1, tmp2, g1;
-        lb = 1.0+EPS;   
+        lb = 1.0+EPS;
         if (x < logint(lb)) {
                 nrerror("argument too small for fast algorithm");
         }
@@ -129,7 +129,7 @@ double invlogint(double x) {
         g1 = 1/log(lb);
         /* x is now between logint(lb) and logint(ub) */
         /* printf("lb:%g ub:%g tmp1:%g tmp2:%g g1:%g\n",lb,ub,tmp1,tmp2,g1); */
-        while (tmp2-tmp1 > EPS) {       
+        while (tmp2-tmp1 > EPS) {
                 /* printf("lb:%g ub:%g tmp1:%g tmp2:%g g1:%g\n",lb,ub,tmp1,tmp2,g1);
                 printf("Iteration\n"); */
                 ub = (x - tmp1) * (ub - lb)/(tmp2 - tmp1) + lb;
@@ -191,7 +191,7 @@ void Initialise() {
   // Initilise pointers
   Head = 0;
   Tail = DataLen - 1;
-  
+
   if (FullDebug)
     printf("Head and Tail Initialised\n");
 
@@ -208,7 +208,7 @@ void Initialise() {
 }
 
 void CalculateAlphabet() {
- 
+
   int Alphabet[512], AlphaIndex;
   long Loop, AlphabetCount = 0;
 
@@ -221,7 +221,7 @@ void CalculateAlphabet() {
   if (FullDebug)
     printf("Analysing Data\n");
 
-  for (Loop = 0; Loop < DataLen; Loop++) 
+  for (Loop = 0; Loop < DataLen; Loop++)
     Alphabet[(int)Data[Loop] + 256] = TRUE;
 
   if (FullDebug)
@@ -230,9 +230,9 @@ void CalculateAlphabet() {
   for (Loop = 0; Loop < 512; Loop++)
     if (Alphabet[Loop] == TRUE)
       AlphabetCount++;
-  
-  if (VerboseDisplay) 
-    printf("Alphabet : %d characters\n", AlphabetCount); 
+
+  if (VerboseDisplay)
+    printf("Alphabet : %d characters\n", AlphabetCount);
 
   if (FullDebug)
     printf("Finalising Alphabet\n");
@@ -242,25 +242,25 @@ void CalculateAlphabet() {
 void DisplayLinks() {
 
   long Loop;
- 
-  printf("Next ["); 
-  for (Loop = 0; Loop < DataLen; Loop++)
-    if (Loop < DataLen - 1)
-      printf("%d,", Next[Loop]); 
-    else
-      printf("%d] Head = %d\n", Next[Loop], Head); 
 
-  printf("Last ["); 
+  printf("Next [");
   for (Loop = 0; Loop < DataLen; Loop++)
     if (Loop < DataLen - 1)
-      printf("%d,", Last[Loop]); 
+      printf("%d,", Next[Loop]);
     else
-      printf("%d] Tail = %d\n", Last[Loop], Tail); 
+      printf("%d] Head = %d\n", Next[Loop], Head);
+
+  printf("Last [");
+  for (Loop = 0; Loop < DataLen; Loop++)
+    if (Loop < DataLen - 1)
+      printf("%d,", Last[Loop]);
+    else
+      printf("%d] Tail = %d\n", Last[Loop], Tail);
 
 }
 
 long Length(long Pos) {
- 
+
   if (Next[Pos] != EMPTY)
     return Next[Pos] - Pos;
   else
@@ -283,7 +283,7 @@ int Compare(long FirstPos, long SecondPos) {
       return FALSE;
     // Test remaining characters
     for (Loop = 0; Loop < Len; Loop++)
-      if (Data[FirstPos + Loop] != Data[SecondPos + Loop]) 
+      if (Data[FirstPos + Loop] != Data[SecondPos + Loop])
         return FALSE;
     return TRUE;
   }
@@ -293,7 +293,7 @@ int Compare(long FirstPos, long SecondPos) {
 void Display(long Pos) {
 
   long Len, Loop;
-  
+
   Len = Length(Pos);
   for (Loop = 0; Loop < Len; Loop++)
     if (Loop != Len - 1)
@@ -355,7 +355,7 @@ void SelectMaxRunPrefix() {
 	remK=0;
   	if (Tail != EMPTY) {
     	Prefix = Last[Tail];
-    
+
     	Pos = Prefix;
 	while (Pos != EMPTY) {
     	K = 0;
@@ -378,7 +378,7 @@ void SelectShortestMaxRunPrefix() {
   	if (Tail != EMPTY) {
     	if (Prefix == EMPTY) Prefix = Last[Tail];
     	else Prefix = ShortestPrefix;
-    
+
     	Pos = Head; // lets go in forward direction
 	while (Pos != EMPTY) {
     	K = 0;
@@ -396,7 +396,7 @@ void SelectShortestMaxRunPrefix() {
 void Combine(long FirstPos, long LastPos) {
 
   long Following, Pos, NextPos;
-  
+
   Following = Next[LastPos];
 
   Pos = Next[FirstPos];
@@ -513,7 +513,7 @@ void AugmentShortestMaxRunPrefix() {
           	ShortestPrefix = FirstPos;
 //          	printf("firstpos2 %d\n",FirstPos);
          }
-    		
+
       }
       else {
     	if ((Next[Pos] != EMPTY) && (Length(Pos) <= LowestLength)) {
@@ -526,7 +526,7 @@ void AugmentShortestMaxRunPrefix() {
       }
     }
   }
-  
+
 //  printf("\n length %d \n", LowestLength);				// output length of current (Length(FirstPos))
 
 }
@@ -537,17 +537,17 @@ void DisplayProgress() {
   double Percentage;
   double ThisComplexity, ThisInfo;
 
-  Pos = DataLen - Tail; 
+  Pos = DataLen - Tail;
   Percentage = (double)(Pos * 100) / (double)DataLen;
 
   switch (ProgressType) {
   case PROGRESSAUG :
     if (AugCount % Progress == 0) {
-      if (InterpolateAug) 
+      if (InterpolateAug)
 	ThisK = 1;
       else
-	ThisK = LastK; 
-      while (ThisK <= LastK) { 
+	ThisK = LastK;
+      while (ThisK <= LastK) {
 	ThisPos =  ThisK * ((Pos - OldPos) / LastK) + OldPos;
 	if (StartFlag == TRUE) {
 	  ThisComplexity = LastComplexity+log((double)ThisK + 1)/log(2.0);
@@ -556,24 +556,24 @@ void DisplayProgress() {
 	  {
 	    ThisComplexity = 0;
 	    StartFlag = TRUE;
-	  }  
+	  }
 	if (VerboseDisplay)  printf("Progress : %d bytes (%.2f %%), %d TAL\tT-complexity : %f Taugs", ThisPos, (double)(ThisPos * 100) / (double)DataLen, AugCount, ThisComplexity);
-	  
+
 	else  printf("%d\t%.2f\t%d\t%f", ThisPos, (double)(ThisPos * 100) / (double)DataLen, AugCount, ThisComplexity);
-          
+
 	if (CalculateTInfo) {
 	  ThisInfo = invlogint(ThisComplexity);
-	  if (VerboseDisplay) 
-	    printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (ThisPos - LastInfoPos));  
+	  if (VerboseDisplay)
+	    printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (ThisPos - LastInfoPos));
 	  else
-	    printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (ThisPos - LastInfoPos));     
+	    printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (ThisPos - LastInfoPos));
 	  LastInfoPos = ThisPos;
 	  LastInfo = ThisInfo;
 	}
 	printf("\n");
 	ThisK++;
       }
-    };    
+    };
     break;
 
   case PROGRESSPERCENT :
@@ -582,15 +582,15 @@ void DisplayProgress() {
           printf("Progress : %d bytes (%.2f %%), %d TAL\tT-complexity : %f Taugs", Pos, (double)NextProgress, AugCount, Complexity);
         }
         else
-        {  
+        {
           printf("%d\t%.2f\t%d\t%f", Pos, (double)NextProgress, AugCount, Complexity);
         }
         if (CalculateTInfo) {
             ThisInfo = invlogint(Complexity);
-            if (VerboseDisplay) 
-              printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (Pos - LastInfoPos));  
+            if (VerboseDisplay)
+              printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (Pos - LastInfoPos));
             else
-              printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (Pos - LastInfoPos));     
+              printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (Pos - LastInfoPos));
             LastInfoPos = Pos;
             LastInfo = ThisInfo;
         }
@@ -605,19 +605,19 @@ void DisplayProgress() {
           printf("Progress : %d bytes (%.2f %%), %d TAL\tT-complexity : %f Taugs", NextProgress, Percentage, AugCount, Complexity);
         }
         else
-        {  
+        {
           printf("%d\t%.2f\t%d\t%f", NextProgress, Percentage, AugCount, Complexity);
         }
         if (CalculateTInfo) {
             ThisInfo = invlogint(Complexity);
-            if (VerboseDisplay) 
-              printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (NextProgress - LastInfoPos));  
+            if (VerboseDisplay)
+              printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (NextProgress - LastInfoPos));
             else
-              printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (NextProgress - LastInfoPos));     
+              printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (NextProgress - LastInfoPos));
             LastInfoPos = NextProgress;
             LastInfo = ThisInfo;
         }
-        printf("\n");  
+        printf("\n");
         NextProgress += Progress;
       }
       break;
@@ -638,7 +638,7 @@ void Finalise() {
 
 int main(int argc, char *argv[]) {
 
-  int Loop; 
+  int Loop;
   long	i;
 
   // Read arguments from command line
@@ -647,8 +647,8 @@ int main(int argc, char *argv[]) {
      printf("\t Deterministic Information Theory computations V1.3\n");
     printf("\t Copyright (C) 1998 M. R. Titchener, University of Auckland\n");
     printf("\t\tExecutable Program and its Source licenced under the \n");
-    printf("\t\tGNU LESSER GENERAL PUBLIC LICENSE,\n");
-    printf("\t\t\tas set out in the associate file COPYING.\n");
+    printf("\t\tGNU GENERAL PUBLIC LICENSE v3,\n");
+    printf("\t\t\tas set out in the associate file LICENSE.\n");
     printf("\t \n");
     printf("\t Algorithm by\t\tM. R. Titchener\t\t1997\n");
     printf("\t Implemented by\t\tS. Wackrow\t\tMar. 1998\n");
@@ -676,8 +676,8 @@ int main(int argc, char *argv[]) {
       FromFile = TRUE;
       if  (strcmp(argv[Loop], "-fr")== 0) ReverseData = TRUE;
       else ReverseData = FALSE;
-      
-      if (argc > (Loop+1)) {      
+
+      if (argc > (Loop+1)) {
         FileName = argv[Loop + 1];
         Loop++;
       }
@@ -725,16 +725,16 @@ int main(int argc, char *argv[]) {
     }
     else if (strcmp(argv[Loop], "-v") == 0) {
       VerboseDisplay = TRUE;
-    }    
+    }
     else if (strcmp(argv[Loop], "-i") == 0) {
       InterpolateAug = TRUE;
     }
     else if (strcmp(argv[Loop], "-ti") == 0) {
       CalculateTInfo = TRUE;
-    }    
+    }
     else if (strcmp(argv[Loop], "-b") == 0) {
       Binary = TRUE;
-    }    
+    }
     else {
       if (Data == NULL)
         Data = argv[Loop];
@@ -786,7 +786,7 @@ int main(int argc, char *argv[]) {
 
   switch (ProgressType) {
     case PROGRESSAUG :
-      if (VerboseDisplay) 
+      if (VerboseDisplay)
         printf("Summary information every %d T-augmentations\n", Progress);
       break;
     case PROGRESSPERCENT :
@@ -804,7 +804,7 @@ int main(int argc, char *argv[]) {
   if (whichprocess == NORMAL) {
 	  while (Head != Tail) {
 	    SelectPrefix();
-		if (DisplayAug == TRUE)  
+		if (DisplayAug == TRUE)
 		  DisplayAll();
 		if (DisplayList == TRUE)
 		  DisplayLinks();
@@ -816,7 +816,7 @@ int main(int argc, char *argv[]) {
   else if (whichprocess == RUNIT) {
 	  while (Head != Tail) {
 		SelectMaxRunPrefix();
-		if (DisplayAug == TRUE)  
+		if (DisplayAug == TRUE)
 		  DisplayAll();
 		if (DisplayList == TRUE)
 		  DisplayLinks();
@@ -824,12 +824,12 @@ int main(int argc, char *argv[]) {
 		  DisplayProgress();
 		Augment();
 	  }
-  
+
   }
-  else if (whichprocess == ORDERLY) { 
+  else if (whichprocess == ORDERLY) {
 	  while (Head != Tail) {
 		SelectShortestMaxRunPrefix();
-		if (DisplayAug == TRUE)  
+		if (DisplayAug == TRUE)
 		  DisplayAll();
 		if (DisplayList == TRUE)
 		  DisplayLinks();
@@ -837,11 +837,11 @@ int main(int argc, char *argv[]) {
 		  DisplayProgress();
 		AugmentShortestMaxRunPrefix();
 	  }
-  
+
   }
 
   // Finalise
-  if (DisplayAug == TRUE)  
+  if (DisplayAug == TRUE)
     DisplayAll();
   if (DisplayList == TRUE)
     DisplayLinks();

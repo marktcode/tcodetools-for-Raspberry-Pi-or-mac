@@ -868,8 +868,8 @@ int main(int argc, char *argv[]) {
      printf("\t Deterministic Information Theory computations V1.3\n");
     printf("\t Copyright (C) 1998 M. R. Titchener, University of Auckland\n");
     printf("\t\tExecutable Program and its Source licenced under the \n");
-    printf("\t\tGNU LESSER GENERAL PUBLIC LICENSE,\n");
-    printf("\t\t\tas set out in the associate file COPYING.\n");
+    printf("\t\tGNU GENERAL PUBLIC LICENSE v3,\n");
+    printf("\t\t\tas set out in the associate file LICENSE.\n");
     printf("\t \n");
     printf("\t Algorithm by\t\tM. R. Titchener\t\t1997\n");
     printf("\t Implemented by\t\tS. Wackrow\t\tMar. 1998\n");

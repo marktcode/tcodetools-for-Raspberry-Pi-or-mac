@@ -646,8 +646,8 @@ int main(int argc, char *argv[]) {
      printf("\t Partition Flow files V2.0\n");
     printf("\t Copyright (C) 1998 M. R. Titchener, University of Auckland\n");
     printf("\t\tExecutable Program and its Source licenced under the \n");
-    printf("\t\tGNU LESSER GENERAL PUBLIC LICENSE,\n");
-    printf("\t\t\tas set out in the associate file COPYING.\n");
+    printf("\t\tGNU GENERAL PUBLIC LICENSE v3,\n");
+    printf("\t\t\tas set out in the associate file LICENSE.\n");
     printf("\t\tIncludes routines by M.R.Titchener, U.Speidel, J. Yang \n");
     printf("\t\t\t     -f [or -F] file \t processes input file of floating point data\n");
     printf("\t\t\t     -s \t assumes input file contains a string of symbols\n");

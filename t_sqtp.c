@@ -400,8 +400,8 @@ int main(int argc, char *argv[]) {
 			printf("\t spod compatible sqtp (quick t-partition V3.0\n");
 			printf("\t Copyright (C) 2007 M. R. Titchener, University of Auckland\n");
 			printf("\t\tExecutable Program and its Source licenced under the \n");
-			printf("\t\tGNU LESSER GENERAL PUBLIC LICENSE,\n");
-			printf("\t\t\tas set out in the associate file COPYING.TXT\n");
+			printf("\t\tGNU GENERAL PUBLIC LICENSE v3,\n");
+			printf("\t\t\tas set out in the associate file LICENSE.\n");
 			printf("\t\tIncludes code by M.R.Titchener, U.Speidel, J. Yang \n");
 			printf("\t\t\t     -h \t prints this info\n");
 			printf("\t\t\t     -p n s\t sets partition range +/- n and increment s \n");

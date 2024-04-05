@@ -1,23 +1,23 @@
-/**************************************************************************************
+/*******************************************************************************
 	Structures used in library routines
 
 	Written by:	Scott Wackrow
-	Date:		Dec 1994	
+	Date:		Dec 1994
 
-****************************************************************************************
-			Alphabet					
-***************************************************************************************/
+********************************************************************************
+			Alphabet
+*******************************************************************************/
 
-#define	MAXALPHA	26							/* max number of members in alphabet */
+#define	MAXALPHA	26				    /* max number of members in alphabet */
 
-typedef struct AlphabetType { 							/* actually the structure of a pascal string */
-	char	Q;								/* size Q = |A| of base */
-	char	a[MAXALPHA];							/* base character list A={0,1,...[9]} or {a,b,c...,[z]} */
+typedef struct AlphabetType {   /* actually the structure of a pascal string */
+	char	Q;								      /* size Q = |A| of base */
+	char	a[MAXALPHA];  /* base character list A={0,1,...[9]} or {a,b,c...,[z]} */
 } AlphabetType, *AlphabetTypeP;
 
-/**************************************************************************************
-			Depletion Code				
-**************************************************************************************/
+/*******************************************************************************
+			Depletion Code
+*******************************************************************************/
 
 #define	MAXAUG		32							/* max number of augmentations allowed */
 
@@ -26,20 +26,20 @@ typedef struct DeplnType {								/* Depletion codes */
 	int			w[MAXAUG];					/* array of expansion codes */
 } DeplnType, *DeplnTypeP;
 
-/**************************************************************************************
-			Depletion Set				
-**************************************************************************************/
+/*******************************************************************************
+			Depletion Set
+*******************************************************************************/
 
-typedef struct DepletionSetType {				
+typedef struct DepletionSetType {
 	int			q;						/* degree */
 	int			e[MAXAUG + 1];					/* expansion factors */
-	DeplnTypeP		PDTs[MAXAUG + 1];					/* pointers to prefixes depletion codes */
+	DeplnTypeP		PDTs[MAXAUG + 1]; /* pointers to prefixes depletion codes */
 	AlphabetTypeP		AlphabetP;					/* pointer to alphabet */
 } DepletionSetType, *DepletionSetTypeP;
 
-/**************************************************************************************
-			Complexity Tree				
-**************************************************************************************/
+/*******************************************************************************
+			Complexity Tree
+*******************************************************************************/
 
 typedef struct ComplexityType {							/* complexity */
 	int			q;						/* degree */
@@ -49,15 +49,13 @@ typedef struct ComplexityType {							/* complexity */
 	struct	ComplexityType	*NextR;						/* pointers */
 } ComplexityType, *ComplexityP;
 
-/**************************************************************************************
-			Other Constants				
-**************************************************************************************/
+/*******************************************************************************
+			Other Constants
+*******************************************************************************/
 
 #define 	MAXPRFXLEN	1000
 #define 	DEFAULTCODESET	"alphabet"
 #define	COMPLEXITYTREE	"/usr/bin/tcode/treefile"
 #define	LASTDEAUGFILE	"deaugment.last"
 
-/*************************************************************************************/
-
-
+/******************************************************************************/
