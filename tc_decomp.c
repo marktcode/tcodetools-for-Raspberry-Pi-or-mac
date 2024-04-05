@@ -1,8 +1,8 @@
 /*************************************************************************************
-								
-	Program:		Decomposition	
+
+	Program:		Decomposition
 	Written by:	Scott Wackrow
-	Date:		Dec 1994	
+	Date:		Dec 1994
 
 *************************************************************************************/
 #include 	"Incs.c"
@@ -43,10 +43,10 @@ DepletionSetTypeP codeP = NULL;
 
 	if (heading == TRUE) {
 		printf("string: %s\n", string);
-		printf("length: %d\n\n", strlen(string));	
+		printf("length: %lu\n\n", strlen(string));	
 	}
 	DecomposeString(string, strlen(string), codeP);
-	
+
 	SaveCode (file, codeP);
 	DisposeCode(&codeP);
 	exit(0);

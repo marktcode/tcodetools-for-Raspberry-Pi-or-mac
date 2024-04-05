@@ -1,8 +1,8 @@
 /*************************************************************************************
-								
-	Program:		RankList2	
+
+	Program:		RankList2
 	Written by:	Scott Wackrow
-	Date:		Dec 1994	
+	Date:		Dec 1994
 
 *************************************************************************************/
 #include 	"Incs.c"
@@ -33,8 +33,8 @@ long longnumber = -1;
 	else {
 		if (ArgsLeft(argc, argv) <= 1) {
 			for (i=1; i < argc; i++)
-				if (argv[i] != NULL) 
-					sscanf(argv[i], "%d", &longnumber);
+				if (argv[i] != NULL)
+					sscanf(argv[i], "%ld", &longnumber);
 		}
 		else {
 			printf ("error: too many arguments passed\n");
@@ -57,14 +57,14 @@ long longnumber = -1;
 
 	setsize = CodeSize(codeP);							/* find set size */
 	if (heading == TRUE)
-		printf ("Set size = %d\n\ni\tPDT[i]\tWord[i]\n", setsize);			/* show set size */	
+		printf ("Set size = %d\n\ni\tPDT[i]\tWord[i]\n", setsize);			/* show set size */
 
 	if (number == 0) {								/* list the whole set */
 		while ( (longnumber = FirstRankWord(longnumber, codeP, &depln) ) >= 0) {	/* get next rank word */
 			len = Encode (&depln, codeP, prefix);				/* encode it to a string */
 			prefix[len] = 0;						/* mark end of string */
 			if (heading == TRUE)
-				printf ("%d\t%d\t%s\n", i++, longnumber, prefix);	/* show all details */
+				printf ("%d\t%ld\t%s\n", i++, longnumber, prefix);	/* show all details */
 			else
 				printf ("%s\n", prefix);				/* show basic details */
 		}
@@ -73,7 +73,7 @@ long longnumber = -1;
 	else {									/* list just one word */
 		if (number < 0)
 			number = number + setsize + 1;
-		if (number < 1) 
+		if (number < 1)
 			number = 1;
 		if (number > setsize)
 			number = setsize;
@@ -83,9 +83,9 @@ long longnumber = -1;
 		len = Encode (&depln, codeP, prefix);					/* encode it to a string */
 		prefix[len] = 0;							/* mark end of string */
 		if (heading == TRUE)
-			printf ("%d\t%d\t%s\n\n", i, longnumber, prefix);		/* show all details */
+			printf ("%d\t%ld\t%s\n\n", i, longnumber, prefix);		/* show all details */
 		else
-			printf ("%s %d\n", prefix, longnumber);					/* show basic details */
+			printf ("%s %ld\n", prefix, longnumber);					/* show basic details */
 	}
 	DisposeCode(&codeP);
 	exit(0);

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #define EMPTY -1
@@ -35,7 +36,8 @@
 	   struct TCodeWord *LastInsert;
        } STRU_LinkedListArrayEntry;
 
-  // pointer to array for the first codeword of length L and the last codeword of length L inserted 
+int Compare(struct TCodeWord *FirstPos, struct TCodeWord *SecondPos);
+  // pointer to array for the first codeword of length L and the last codeword of length L inserted
   struct LinkedListArrayEntry *CodeWordsOfLengthL;
   // T-expansion index counter
   long TExpansionIndex;
@@ -130,13 +132,13 @@
       }
       return Entry1;
       // need to figure out from Entry1->Index as to whether there is an entry
-  }      
+  }
 
   struct LinkedListArrayEntry *setArrayStartEntryForLength(long length, struct TCodeWord *Codeword) {
-    struct LinkedListArrayEntry *Entry1, *Entry2; 
+    struct LinkedListArrayEntry *Entry1, *Entry2;
     Entry1 = getArrayEntryForLength(length);
     // does entry already exist?
-    if (Entry1->Index != length) { 
+    if (Entry1->Index != length) {
        // no, do insert
        Entry2 = (struct LinkedListArrayEntry*) malloc(sizeof(struct LinkedListArrayEntry));
        Entry2->NextEntry = Entry1->NextEntry;
@@ -145,24 +147,24 @@
        Entry1->NextEntry = Entry2;
        Entry1 = Entry2;
     }
-    Entry1->Codeword = Codeword;   
+    Entry1->Codeword = Codeword;
     return Entry1;
   }
 
   struct LinkedListArrayEntry *setArrayInsertEntryForLength(long length, struct TCodeWord *Codeword) {
-    struct LinkedListArrayEntry *Entry1, *Entry2; 
+    struct LinkedListArrayEntry *Entry1, *Entry2;
     Entry1 = getArrayEntryForLength(length);
     // does entry already exist?
-    if (Entry1->Index != length) { 
+    if (Entry1->Index != length) {
        // no, do insert
        Entry2 = (struct LinkedListArrayEntry*) malloc(sizeof(struct LinkedListArrayEntry));
        Entry2->NextEntry = Entry1->NextEntry;
        Entry2->Index = length;
        Entry1->NextEntry = Entry2;
        Entry1 = Entry2;
-       Entry1->Codeword = Codeword; 
+       Entry1->Codeword = Codeword;
     }
-    Entry1->LastInsert = Codeword;   
+    Entry1->LastInsert = Codeword;
     return Entry1;
   }
 
@@ -171,7 +173,7 @@ void dumpStringPositionList() {
   printf("String linked list positions: ");
   dummy = DataStringStart;
   while (dummy != NULL) {
-     printf("%d ",dummy->Position);
+     printf("%ld ",dummy->Position);
      dummy = dummy->NextCodeWordInString;
   }
   printf("\n");
@@ -181,13 +183,13 @@ void dumpStringPositionList() {
 void dumpLengthPositionList(long cwl) {
   struct LinkedListArrayEntry *list;
   struct TCodeWord *dummy;
-  list = getArrayEntryForLength(cwl); 
-  printf("Length linked list positions for length %d: ",list->Index);
+  list = getArrayEntryForLength(cwl);
+  printf("Length linked list positions for length %ld: ",list->Index);
   dummy = list->Codeword;
   while (dummy != NULL) {
-     printf("%d* ",dummy->Position);
+     printf("%ld* ",dummy->Position);
      dummy = dummy->NextCodeWordOfSameLength;
-  } 
+  }
   printf("\n");
 }
 
@@ -211,11 +213,11 @@ void dumpLengthPositionList(long cwl) {
     entry = getArrayEntryForLength(codeword->Length);
     if (codeword->PreviousCodeWordOfSameLength != NULL) {
       // if the present codeword is not the first codeword in that list...
-      codeword->PreviousCodeWordOfSameLength->NextCodeWordOfSameLength = codeword->NextCodeWordOfSameLength;       
+      codeword->PreviousCodeWordOfSameLength->NextCodeWordOfSameLength = codeword->NextCodeWordOfSameLength;
     }
     else
     {
-      // if it is the first codeword in list, set first entry to next codeword of the same length as the former 
+      // if it is the first codeword in list, set first entry to next codeword of the same length as the former
       // length of the codeword we're trying to remove
       entry->Codeword = codeword->NextCodeWordOfSameLength;
     }
@@ -227,8 +229,8 @@ void dumpLengthPositionList(long cwl) {
 
     // now worry about backward pointers - there is only one to worry about, really
 
-    if (codeword->NextCodeWordOfSameLength != NULL) {      
-      codeword->NextCodeWordOfSameLength->PreviousCodeWordOfSameLength = codeword->PreviousCodeWordOfSameLength;   
+    if (codeword->NextCodeWordOfSameLength != NULL) {
+      codeword->NextCodeWordOfSameLength->PreviousCodeWordOfSameLength = codeword->PreviousCodeWordOfSameLength;
     }
     // if (FullDebug) printf("\nexiting removeFromLengthList()\n");
     return codeword->NextCodeWordOfSameLength;
@@ -236,15 +238,15 @@ void dumpLengthPositionList(long cwl) {
 
   void removeFromStringList(struct TCodeWord *codeword) {
     struct LinkedListArrayEntry *entry;
-    // no need to test here for nullness as left codewords always survive in mergers 
-    codeword->PreviousCodeWordInString->NextCodeWordInString = codeword->NextCodeWordInString; 
+    // no need to test here for nullness as left codewords always survive in mergers
+    codeword->PreviousCodeWordInString->NextCodeWordInString = codeword->NextCodeWordInString;
     if (codeword->NextCodeWordInString != NULL) {
-      codeword->NextCodeWordInString->PreviousCodeWordInString = codeword->PreviousCodeWordInString;      
+      codeword->NextCodeWordInString->PreviousCodeWordInString = codeword->PreviousCodeWordInString;
     }
   }
 
   void mergeCodeWords(struct TCodeWord *firstCodeWordInMergedString) {
-    struct LinkedListArrayEntry *Entry, *NewEntry; 
+    struct LinkedListArrayEntry *Entry, *NewEntry;
     struct TCodeWord *NextCW, *InsertPointer, *NextSameLength;
     // if (FullDebug) printf("\nentering mergeCodeWords()\n");
     TExpansionIndex = 1;
@@ -290,7 +292,7 @@ void dumpLengthPositionList(long cwl) {
     if (Entry->Index != firstCodeWordInMergedString->Length) {
        //if (FullDebug) printf("\n No array entry for this length - creating...");
        // no inserts have been made in this list, ever. Add array element
-       NewEntry = setArrayStartEntryForLength(firstCodeWordInMergedString->Length, firstCodeWordInMergedString);    
+       NewEntry = setArrayStartEntryForLength(firstCodeWordInMergedString->Length, firstCodeWordInMergedString);
        NewEntry->LastInsert = firstCodeWordInMergedString;
        firstCodeWordInMergedString->NextCodeWordOfSameLength = NULL;
        firstCodeWordInMergedString->PreviousCodeWordOfSameLength = NULL;
@@ -321,9 +323,9 @@ void dumpLengthPositionList(long cwl) {
 	    }
 	    else
 	    { // if not, move the insert pointer to the first codeword - we will search later for the right spot to insert
-	      Entry->LastInsert = Entry->Codeword;    
+	      Entry->LastInsert = Entry->Codeword;
 	    }
-	 } 
+	 }
 	 else // list was not reset
 	 { // is last insert after the position of the codeword we want to insert (old insert from a previous pass)?
 	   if (Entry->LastInsert->Position > firstCodeWordInMergedString->Position) {
@@ -339,9 +341,9 @@ void dumpLengthPositionList(long cwl) {
 	     }
 	     else
 	     { // if not, move the insert pointer to the first codeword
-	       Entry->LastInsert = Entry->Codeword;    
+	       Entry->LastInsert = Entry->Codeword;
 	     }
-	   }	 
+	   }
 	 }
        }
 
@@ -349,7 +351,7 @@ void dumpLengthPositionList(long cwl) {
 
        if (Entry->LastInsert != firstCodeWordInMergedString) {
          // printf("\n Insert point needs to be searched for...");
-	 
+
          while (Entry->LastInsert->NextCodeWordOfSameLength != NULL) {
            if (Entry->LastInsert->NextCodeWordOfSameLength->Position > firstCodeWordInMergedString->Position) {
              break;
@@ -359,7 +361,7 @@ void dumpLengthPositionList(long cwl) {
              Entry->LastInsert = Entry->LastInsert->NextCodeWordOfSameLength;
            }
          }
-	 
+
 	 // insert point found - are we at the end of the list now?
 	 if (Entry->LastInsert->NextCodeWordOfSameLength == NULL) {
 	   firstCodeWordInMergedString->NextCodeWordOfSameLength = NULL;
@@ -373,14 +375,14 @@ void dumpLengthPositionList(long cwl) {
 	 firstCodeWordInMergedString->PreviousCodeWordOfSameLength = Entry->LastInsert;
 	 Entry->LastInsert = firstCodeWordInMergedString;
          // if (FullDebug) printf("\n Inserted!");
-       } 
+       }
     }
     // if (FullDebug) printf("\nexiting mergeCodeWords()\n");
   }
 
 
 
-double ei(double x) 
+double ei(double x)
 {
         void nrerror(char error_text[]);
         int k;
@@ -425,11 +427,11 @@ void nrerror(char error_text[])
 
 double logint(double x) {
         return ei(log(x));
-}       
+}
 
 double invlogint(double x) {
         double lb, ub, tmp1, tmp2, g1;
-        lb = 1.0+EPS;   
+        lb = 1.0+EPS;
         if (x < logint(lb)) {
                 nrerror("argument too small for fast algorithm");
         }
@@ -443,7 +445,7 @@ double invlogint(double x) {
         g1 = 1/log(lb);
         /* x is now between logint(lb) and logint(ub) */
         /* printf("lb:%g ub:%g tmp1:%g tmp2:%g g1:%g\n",lb,ub,tmp1,tmp2,g1); */
-        while (tmp2-tmp1 > EPS) {       
+        while (tmp2-tmp1 > EPS) {
                 /* printf("lb:%g ub:%g tmp1:%g tmp2:%g g1:%g\n",lb,ub,tmp1,tmp2,g1);
                 printf("Iteration\n"); */
                 ub = (x - tmp1) * (ub - lb)/(tmp2 - tmp1) + lb;
@@ -548,7 +550,7 @@ void CalculateAlphabet() {
   if (FullDebug)
     printf("Analysing Data\n");
 
-  for (Loop = 0; Loop < DataLen; Loop++) 
+  for (Loop = 0; Loop < DataLen; Loop++)
     Alphabet[(int)Data[Loop]+256] = TRUE;
 
   if (FullDebug)
@@ -565,8 +567,8 @@ void CalculateAlphabet() {
 
   H1 = -log(1/(double)AlphabetCount)/log(2.0);
 
-  if (VerboseDisplay) 
-    printf("Alphabet : %d characters\n", AlphabetCount); 
+  if (VerboseDisplay)
+    printf("Alphabet : %ld characters\n", AlphabetCount);
 
   if (FullDebug)
     printf("Finalising Alphabet\n");
@@ -577,19 +579,19 @@ void CalculateAlphabet() {
 
   long Loop;
 
-  printf("Next ["); 
+  printf("Next [");
   for (Loop = 0; Loop < DataLen; Loop++)
     if (Loop < DataLen - 1)
-      printf("%d,", Next[Loop]); 
+      printf("%d,", Next[Loop]);
     else
-      printf("%d] Head = %d\n", Next[Loop], Head); 
+      printf("%d] Head = %d\n", Next[Loop], Head);
 
-  printf("Last ["); 
+  printf("Last [");
   for (Loop = 0; Loop < DataLen; Loop++)
     if (Loop < DataLen - 1)
-      printf("%d,", Last[Loop]); 
+      printf("%d,", Last[Loop]);
     else
-      printf("%d] Tail = %d\n", Last[Loop], Tail); 
+      printf("%d] Tail = %d\n", Last[Loop], Tail);
 
 } */
 
@@ -601,7 +603,7 @@ int Compare(struct TCodeWord *FirstPos, struct TCodeWord *SecondPos) {
 /*  // Test same length
   if (FirstPos->Length != SecondPos->Length) {
     // if (FullDebug) printf("\neexiting Compare()\n");
-    return FALSE; 
+    return FALSE;
   }
   else { */
     // Get bound to test
@@ -609,13 +611,13 @@ int Compare(struct TCodeWord *FirstPos, struct TCodeWord *SecondPos) {
     // Test last character
     if (Data[FirstPos->Position + Len] != Data[SecondPos->Position + Len]){
       // if (FullDebug) printf("\neexiting Compare()\n");
-      return FALSE; 
+      return FALSE;
     }
     // Test remaining characters
     for (Loop = 0; Loop < Len; Loop++)
       if (Data[FirstPos->Position + Loop] != Data[SecondPos->Position + Loop]) {
         // if (FullDebug) printf("\neexiting Compare()\n");
-        return FALSE; 
+        return FALSE;
       }
     // if (FullDebug) printf("\neexiting Compare()\n");
     return TRUE;
@@ -638,9 +640,9 @@ void Display(struct TCodeWord *codeword) {
 
 void DisplayPrefix() {
 
-  printf("K = %d\tPrefix = ", K);
+  printf("K = %ld\tPrefix = ", K);
   Display(Prefix);
-  printf(" from %d length %d ", Prefix->Position, Prefix->Length);
+  printf(" from %ld length %ld ", Prefix->Position, Prefix->Length);
   printf("\n");
 
 }
@@ -648,11 +650,11 @@ void DisplayPrefix() {
 void DisplayAll() {
 
   long Pos;
-  printf("K = %d\tPrefix = ", K);
+  printf("K = %ld\tPrefix = ", K);
   Display(Prefix);
   printf("\n");
 
-} 
+}
 
 
 void SelectPrefix() {
@@ -661,7 +663,7 @@ void SelectPrefix() {
 
   if (FullDebug) {
     printf("\n\n**********************************************************\n\n");
-    printf("%d\n",TailPosition);
+    printf("%ld\n",TailPosition);
   }
 
   Prefix = TailCodeWord->PreviousCodeWordInString;
@@ -712,7 +714,7 @@ void Augment() {
     H1 = H1 + lastsum;
   }
 
-  entry = getArrayEntryForLength(Prefix->Length); 
+  entry = getArrayEntryForLength(Prefix->Length);
 
   if ((TailPosition > 0) && (Prefix->Length == entry->Index) && (entry->Codeword != NULL)) { // any codewords of prefix length in the string?
      // yes, so follow the linked list for the prefix length and merge any T-prefixes we find
@@ -726,10 +728,10 @@ void Augment() {
           // printf("Beginning of T-prefix run (level %d) found at current pos:%d (%d)\n",AugCount, Current->Position, TailPosition);
           // if (FullDebug) printf("+");
           mergeCodeWords(Current);
-	  if (Last != NULL) {  
+	  if (Last != NULL) {
             Current = Last->NextCodeWordOfSameLength;
 	  }
-	  else 
+	  else
 	  { // start at beginning of list
 	    Current = entry->Codeword;
 	  }
@@ -753,17 +755,17 @@ void DisplayProgress() {
   double Percentage;
   double ThisComplexity, ThisInfo;
 
-  Pos = TailPosition; 
+  Pos = TailPosition;
   Percentage = (double)(Pos * 100) / (double)DataLen;
 
   switch (ProgressType) {
   case PROGRESSAUG :
     if (AugCount % Progress == 0) {
-      if (InterpolateAug) 
+      if (InterpolateAug)
 	ThisK = 1;
       else
-	ThisK = LastK; 
-      while (ThisK <= LastK) { 
+	ThisK = LastK;
+      while (ThisK <= LastK) {
 	ThisPos =  ThisK * ((Pos - OldPos) / LastK) + OldPos;
 	if (StartFlag == TRUE) {
 	  ThisComplexity = LastComplexity+log((double)ThisK + 1)/log(2.0);
@@ -772,46 +774,46 @@ void DisplayProgress() {
 	  {
 	    ThisComplexity = 0;
 	    StartFlag = TRUE;
-	  }  
-	if (VerboseDisplay)  printf("Progress : %d bytes (%.2f %%), %d TAL\tT-complexity : %f Taugs", (DataLen - TailPosition), (double)(ThisPos * 100) / (double) (DataLen - TailPosition), AugCount, ThisComplexity);
-	  
-	else  printf("%d\t%.2f\t%d\t%f", (DataLen - TailPosition), (double)(ThisPos * 100) / (double)(DataLen - TailPosition), AugCount, ThisComplexity);
+	  }
+	if (VerboseDisplay)  printf("Progress : %ld bytes (%.2f %%), %ld TAL\tT-complexity : %f Taugs", (DataLen - TailPosition), (double)(ThisPos * 100) / (double) (DataLen - TailPosition), AugCount, ThisComplexity);
+
+	else  printf("%ld\t%.2f\t%ld\t%f", (DataLen - TailPosition), (double)(ThisPos * 100) / (double)(DataLen - TailPosition), AugCount, ThisComplexity);
 
 	if (CalculateTInfo) {
 	  ThisInfo = invlogint(ThisComplexity);
-	  if (VerboseDisplay) 
-	    printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (ThisPos - LastInfoPos));  
+	  if (VerboseDisplay)
+	    printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (ThisPos - LastInfoPos));
 	  else
-	    printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (ThisPos - LastInfoPos));     
+	    printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (ThisPos - LastInfoPos));
 	  LastInfoPos = ThisPos;
 	  LastInfo = ThisInfo;
 	}
 	if (OutputShannon) {
-	   
-printf("\t%d:%d:%d:%f:%f:%f:%f:%f",AlphabetCount,plen,K,H1,(H1-LastH1)/plen,H1/plen,H1*log(2)/plen,(ThisInfo
+
+printf("\t%ld:%ld:%ld:%f:%f:%f:%f:%f",AlphabetCount,plen,K,H1,(H1-LastH1)/plen,H1/plen,H1*log(2)/plen,(ThisInfo
 - LastInfo) / ((double)(ThisPos - LastInfoPos)*H1*log(2)/plen));
-	}	
+	}
 	printf("\n");
 	ThisK++;
       }
-    };    
+    };
     break;
 
   case PROGRESSPERCENT :
       while (NextProgress <= Percentage) {
         if (VerboseDisplay) {
-          printf("Progress : %d bytes (%.2f %%), %d TAL\tT-complexity : %f Taugs", Pos, (double)NextProgress, AugCount, Complexity);
+          printf("Progress : %ld bytes (%.2f %%), %ld TAL\tT-complexity : %f Taugs", Pos, (double)NextProgress, AugCount, Complexity);
         }
         else
-        {  
-          printf("%d\t%.2f\t%d\t%f", Pos, (double)NextProgress, AugCount, Complexity);
+        {
+          printf("%ld\t%.2f\t%ld\t%f", Pos, (double)NextProgress, AugCount, Complexity);
         }
         if (CalculateTInfo) {
             ThisInfo = invlogint(Complexity);
-            if (VerboseDisplay) 
-              printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (Pos - LastInfoPos));  
+            if (VerboseDisplay)
+              printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (Pos - LastInfoPos));
             else
-              printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (Pos - LastInfoPos));     
+              printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (Pos - LastInfoPos));
             LastInfoPos = Pos;
             LastInfo = ThisInfo;
         }
@@ -823,22 +825,22 @@ printf("\t%d:%d:%d:%f:%f:%f:%f:%f",AlphabetCount,plen,K,H1,(H1-LastH1)/plen,H1/p
     case PROGRESSLENGTH :
       while (NextProgress <= Pos) {
         if (VerboseDisplay) {
-          printf("Progress : %d bytes (%.2f %%), %d TAL\tT-complexity : %f Taugs", NextProgress, Percentage, AugCount, Complexity);
+          printf("Progress : %ld bytes (%.2f %%), %ld TAL\tT-complexity : %f Taugs", NextProgress, Percentage, AugCount, Complexity);
         }
         else
-        {  
-          printf("%d\t%.2f\t%d\t%f", NextProgress, Percentage, AugCount, Complexity);
+        {
+          printf("%ld\t%.2f\t%ld\t%f", NextProgress, Percentage, AugCount, Complexity);
         }
         if (CalculateTInfo) {
             ThisInfo = invlogint(Complexity);
-            if (VerboseDisplay) 
-              printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (NextProgress - LastInfoPos));  
+            if (VerboseDisplay)
+              printf(", T-information: %f nats, T-entropy: %f nats/symbol", ThisInfo, (ThisInfo - LastInfo) / (NextProgress - LastInfoPos));
             else
-              printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (NextProgress - LastInfoPos));     
+              printf("\t%f\t%f", ThisInfo, (ThisInfo - LastInfo) / (NextProgress - LastInfoPos));
             LastInfoPos = NextProgress;
             LastInfo = ThisInfo;
         }
-        printf("\n");  
+        printf("\n");
         NextProgress += Progress;
       }
       break;
@@ -857,7 +859,7 @@ void Finalise() {
 
 int main(int argc, char *argv[]) {
 
-  int Loop; 
+  int Loop;
   long	i;
 
   // Read arguments from command line
@@ -896,7 +898,7 @@ int main(int argc, char *argv[]) {
       if  (strcmp(argv[Loop], "-fr")== 0) ReverseData = TRUE;
       else ReverseData = FALSE;
 
-      if (argc > (Loop+1)) {      
+      if (argc > (Loop+1)) {
         FileName = argv[Loop + 1];
         Loop++;
       }
@@ -911,17 +913,17 @@ int main(int argc, char *argv[]) {
     }
     else if (strcmp(argv[Loop], "-pa") == 0) {
       ProgressType = PROGRESSAUG;
-      sscanf(argv[Loop + 1], "%d", &Progress);
+      sscanf(argv[Loop + 1], "%ld", &Progress);
       Loop++;
     }
     else if (strcmp(argv[Loop], "-pp") == 0) {
       ProgressType = PROGRESSPERCENT;
-      sscanf(argv[Loop + 1], "%d", &Progress);
+      sscanf(argv[Loop + 1], "%ld", &Progress);
       Loop++;
     }
     else if (strcmp(argv[Loop], "-pl") == 0) {
       ProgressType = PROGRESSLENGTH;
-      sscanf(argv[Loop + 1], "%d", &Progress);
+      sscanf(argv[Loop + 1], "%ld", &Progress);
       Loop++;
     }
     else if (strcmp(argv[Loop], "-d") == 0) {
@@ -931,7 +933,7 @@ int main(int argc, char *argv[]) {
       DisplayList = TRUE;
     }
     else if (strcmp(argv[Loop], "-q") == 0) {
-      	sscanf(argv[Loop + 1], "%d", &outputlevel);
+      	sscanf(argv[Loop + 1], "%ld", &outputlevel);
       	Loop++;
     }
     else if (strcmp(argv[Loop], "-fd") == 0) {
@@ -942,7 +944,7 @@ int main(int argc, char *argv[]) {
     }
     else if (strcmp(argv[Loop], "-v") == 0) {
       VerboseDisplay = TRUE;
-    }    
+    }
     else if (strcmp(argv[Loop], "-i") == 0) {
       InterpolateAug = TRUE;
     }
@@ -951,7 +953,7 @@ int main(int argc, char *argv[]) {
     }
     else if (strcmp(argv[Loop], "-ti") == 0) {
       CalculateTInfo = TRUE;
-    }    
+    }
     else {
       if (Data == NULL)
         Data = argv[Loop];
@@ -972,9 +974,9 @@ int main(int argc, char *argv[]) {
     printf("Full Debug Mode On\n");
 
   if (FromFile == TRUE) {
-    LoadFile(FileName);
+    LoadFile();
     if (VerboseDisplay) {
-      printf("File : %s\tSize : %d", FileName, DataLen);
+      printf("File : %s\tSize : %ld", FileName, DataLen);
      if (RemovedLast == TRUE)
        printf(" (Removed new line from end of file)\n");
      else
@@ -987,7 +989,7 @@ int main(int argc, char *argv[]) {
   else {
     DataLen = (long) strlen(Data);
     if (VerboseDisplay) {
-      printf("File : stdin\tSize : %d\n", DataLen);
+      printf("File : stdin\tSize : %ld\n", DataLen);
     }
   }
   if (CalcAlphabet == TRUE)
@@ -1003,14 +1005,14 @@ int main(int argc, char *argv[]) {
 
   switch (ProgressType) {
     case PROGRESSAUG :
-      if (VerboseDisplay) 
-        printf("Summary information every %d T-augmentations\n", Progress);
+      if (VerboseDisplay)
+        printf("Summary information every %ld T-augmentations\n", Progress);
       break;
     case PROGRESSPERCENT :
-      printf("Summary information every %d percent\n", Progress);
+      printf("Summary information every %ld percent\n", Progress);
       break;
     case PROGRESSLENGTH :
-      printf("Summary information every %d bytes\n", Progress);
+      printf("Summary information every %ld bytes\n", Progress);
       break;
   }
 
@@ -1022,12 +1024,12 @@ int main(int argc, char *argv[]) {
     // printf("\n\nTail Position: %d:\n",TailPosition);
     SelectPrefix();
     if (outputlevel+1 > 0) {
-    	outputlevel--; 
+    	outputlevel--;
     }
     if ( outputlevel == 0 ) {
     	DisplayAll();
     }
-    if (DisplayAug == TRUE)  
+    if (DisplayAug == TRUE)
       DisplayAll();
      /* if (DisplayList == TRUE)
       DisplayLinks(); */
@@ -1037,7 +1039,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Finalise
-  /* if (DisplayAug == TRUE)  
+  /* if (DisplayAug == TRUE)
      DisplayAll();
   if (DisplayList == TRUE)
     DisplayLinks(); */
@@ -1056,4 +1058,3 @@ int main(int argc, char *argv[]) {
   Finalise();
   return 0;
 }
-

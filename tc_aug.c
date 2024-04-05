@@ -1,8 +1,8 @@
 /*************************************************************************************
-								
-	Program:		Augment	
+
+	Program:		Augment
 	Written by:	Scott Wackrow
-	Date:		Dec 1994	
+	Date:		Dec 1994
 	Updated:		Jan 1995
 
 *************************************************************************************/
@@ -36,11 +36,12 @@ long number = 0;
 		}
 		else {										/* if not a list... */
 			for ( i=1; i<argc; i++)							/* go through all arguments that aren't null */
-				if ( argv[i] != NULL )
+				if ( argv[i] != NULL ) {
 					if (prefix == NULL )						/* if prefix not yet found then this is it */
 						prefix = argv[i];
 					else							/* otherwise its the expansion parameter */
 						sscanf(argv[i], "%d", &expansion);
+				}
 			if (expansion < 1 ) {							/* check expansion parameter */
 				printf ("error: invalid expansion parameter\n");
 				exit (-1);
@@ -78,7 +79,7 @@ long number = 0;
 			if (number == 0)								/* if prefix entered */
 				printf ("prefix: %s\n", prefix);
 			else									/* if PDT entered */
-				printf ("PDT = %d\n", number);
+				printf ("PDT = %ld\n", number);
 			printf ("expansion: %d\n\n", expansion);
 		}
 	}
@@ -114,11 +115,11 @@ long number = 0;
 	}
 	else {											/* if a list of parameters */
 		if (number != 0) {									/* if PDTs entered */
-			sprintf (firstPDT, "%d", number);						/* convert back to string */
+			sprintf (firstPDT, "%ld", number);						/* convert back to string */
 			prefix = firstPDT;								/* set as first PDT / prefix */
 		}
 		for (i=1; i<argc; i++) 								/* for each argument */
-			if (argv[i] != NULL)								/* check its not null */
+			if (argv[i] != NULL) {							/* check its not null */
 				if (prefix == NULL)							/* if we havent got the next prefix/PDT yet */
 					prefix = argv[i];						/* get the prefix/PDT */
 				else {								/* otherwise get the expansion */
@@ -130,7 +131,7 @@ long number = 0;
 						}
 					}
 					else {							/* if PDT in long number form */
-						sscanf (prefix, "%d", &number);			/* convert string to long number */
+						sscanf (prefix, "%ld", &number);			/* convert string to long number */
 						LongToDepln(number, codeP, &depln);			/* convert long number to depln */
 					}
 					if ( ChkDeplnCode(&depln, codeP) == FALSE ) {			/* check if code is valid */
@@ -142,17 +143,19 @@ long number = 0;
 					}
 					else
 						Augment(codeP, &depln, expansion);			/* augment */
-					if (heading == TRUE)					/* list augmentations */
-						if (number ==0)		
-							printf("s%d = %s\te%d = %d\n", codeP->q, prefix, codeP->q, expansion); 
+					if (heading == TRUE) {					/* list augmentations */
+						if (number ==0)
+							printf("s%d = %s\te%d = %d\n", codeP->q, prefix, codeP->q, expansion);
 						else
 							printf("PDT%d = %s\te%d = %d\n", codeP->q, prefix, codeP->q, expansion);
+					}
 					prefix = NULL;
 				}
+			}
 		if (heading == TRUE)
 			printf("\n");
 	}
-			
+
 	SaveCode ( file, codeP );							/* save code */
 	DisposeCode(&codeP);
 	exit (0);

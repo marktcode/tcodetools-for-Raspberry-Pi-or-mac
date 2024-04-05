@@ -1,5 +1,5 @@
 /*
- * We got the file from Mark. I have changed nothing at the logic of the 
+ * We got the file from Mark. I have changed nothing at the logic of the
  * code. I made some changes to get the code to standard c because it didn't
  * compile in matlab(Visual C++).
  *
@@ -8,26 +8,27 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #define MAX_STEPSAMPLE_INTERVAL 65536  /* The maximum interval (2^16) for step information sample */
  /* match lists links same codewords based on IDs. string list links all codewords */
-typedef struct CODEWORDLIST 
-{  
+typedef struct CODEWORDLIST
+{
     unsigned long CodeWordID;
-    struct CODEWORDLIST *NextCodeWordInMatchList;  
-    struct CODEWORDLIST *PreviousCodeWordInMatchList;    
-    struct CODEWORDLIST *NextCodeWordInStringList;    
-    struct CODEWORDLIST *PreviousCodeWordInStringList;  
-    
-}CODEWORD; 
+    struct CODEWORDLIST *NextCodeWordInMatchList;
+    struct CODEWORDLIST *PreviousCodeWordInMatchList;
+    struct CODEWORDLIST *NextCodeWordInStringList;
+    struct CODEWORDLIST *PreviousCodeWordInStringList;
+
+}CODEWORD;
 
 typedef struct MATCHLISTENTRY_DEF  /* entry list stores heads of all match lists. These are dummy heads, no real data is stored here */
-{  
+{
     unsigned long CodeWordID;
-    struct CODEWORDLIST *NextCodeWordInMatchList;   
+    struct CODEWORDLIST *NextCodeWordInMatchList;
     struct CODEWORDLIST *PreviousCodeWordInMatchList;
-    
+
 }MATCHLISTENTRY;
 
 
@@ -51,7 +52,7 @@ typedef struct MATCHLISTENTRY_DEF  /* entry list stores heads of all match lists
   /* Command Line Flags */
   int FromFile = FALSE;
   char *FileName = NULL;
-  
+
 
   /* Data Array */
 	long DataLen;
@@ -69,11 +70,11 @@ typedef struct MATCHLISTENTRY_DEF  /* entry list stores heads of all match lists
 	long HashTableSize;
 
 
-    long Tprefix_N_Indicate;  
-    long NextAvailableEntry; 
-    long FirstNewEntry_PerPass;  
+    long Tprefix_N_Indicate;
+    long NextAvailableEntry;
+    long FirstNewEntry_PerPass;
     CODEWORD *PrimeList;
-    
+
     float V[7]={5.5427e-01f, 2.0248e-01f, -2.1048e-01f, 7.9845e-02f, -1.5054e-02f, 1.4153e-03f, -5.2962e-05f};
 
 
@@ -90,12 +91,12 @@ long FileSize(char *FileName) {
 }
 
 
-double ei(double x) 
+double ei(double x)
 {
         void nrerror(char error_text[]);
         int k;
         double fact,prev,sum,term;
-                
+
         if (x <= 0.0) nrerror("Bad argument in ei");
         if (x < FPMIN) return log(x)+EULER;
         if (x <= -log(EPS)) {
@@ -135,11 +136,11 @@ void nrerror(char error_text[])
 
 double logint(double x) {
         return ei(log(x));
-}       
+}
 
 double invlogint(double x) {
         double lb, ub, tmp1, tmp2, g1;
-        lb = 1.0+EPS;   
+        lb = 1.0+EPS;
         if (x < logint(lb)) {
                 nrerror("argument too small for fast algorithm");
         }
@@ -153,7 +154,7 @@ double invlogint(double x) {
         g1 = 1/log(lb);
         /* x is now between logint(lb) and logint(ub) */
         /* printf("lb:%g ub:%g tmp1:%g tmp2:%g g1:%g\n",lb,ub,tmp1,tmp2,g1); */
-        while (tmp2-tmp1 > EPS) {       
+        while (tmp2-tmp1 > EPS) {
                 /* printf("lb:%g ub:%g tmp1:%g tmp2:%g g1:%g\n",lb,ub,tmp1,tmp2,g1);
                 printf("Iteration\n"); */
                 ub = (x - tmp1) * (ub - lb)/(tmp2 - tmp1) + lb;
@@ -166,13 +167,13 @@ double invlogint(double x) {
         else return (ub-.7582221);
 }
 
-/**********************************************************************************/
-/* New quickcalc
-/*
-/**********************************************************************************/
+/******************************************************************************
+ * New quickcalc
+ *
+ ******************************************************************************/
 
 double ftdSelAugment ( char *buffer, long bufflen)
-{  
+{
 
     long Loop, StepCount, HashCodeTemp, Length_SuffixString_ParsedIntoOneCodeword, StepInfoPrintCount;
 	long TprefixLength, HashCode_Tprefix, Count_TprefixMatch, TempID, TempEntry;
@@ -180,30 +181,30 @@ double ftdSelAugment ( char *buffer, long bufflen)
 	char *pc_TprefixAddress;
 	CODEWORD *CodeWordBegin, *PrimeListTemp, *RealEndOfPrimeList, *Node_Tprefix, *HeadOfCurrentMatchList;
 	CODEWORD *CodeWordInMatchList;
-	
+
     Complexity = 0;
     Tprefix_N_Indicate = 256;												/* entry reserved for p^k_n */
     NextAvailableEntry = 257; 												/* points to next available entry */
     FirstNewEntry_PerPass = NextAvailableEntry;  							/* entry for first new codeword in each pass */
     EntryList[Tprefix_N_Indicate].CodeWordID = 0;
 
-    PrimeListEnd = NULL; 
+    PrimeListEnd = NULL;
 
 
 /********* Initialize head node *********/
-    PrimeList[0].NextCodeWordInStringList = PrimeList + 1;   
+    PrimeList[0].NextCodeWordInStringList = PrimeList + 1;
     PrimeList[0].PreviousCodeWordInStringList = NULL;
-    
-/********* Initialize end node *********/    
+
+/********* Initialize end node *********/
     PrimeList[bufflen].NextCodeWordInStringList = NULL;
-    PrimeList[bufflen].PreviousCodeWordInStringList = PrimeList + bufflen - 1; 
-    
+    PrimeList[bufflen].PreviousCodeWordInStringList = PrimeList + bufflen - 1;
+
     for (Loop = 0; Loop < 256; Loop++)  									/* initialize first 256 entries (0--255) */
     {
-        EntryList[Loop].PreviousCodeWordInMatchList = (CODEWORD*)(EntryList + Loop); 
-        EntryList[Loop].CodeWordID = 0; 
+        EntryList[Loop].PreviousCodeWordInMatchList = (CODEWORD*)(EntryList + Loop);
+        EntryList[Loop].CodeWordID = 0;
     }
-    
+
     for (Loop= 1; Loop < bufflen ; Loop++)   							/* create lists. Pointers in NextCodeWordInMatchList and NextCodeWordInStringList should have same values */
     {
         PrimeList[Loop].NextCodeWordInStringList = PrimeList + Loop + 1;
@@ -214,11 +215,11 @@ double ftdSelAugment ( char *buffer, long bufflen)
     StepCount = 1;   													/* includes literal character */
 
     PrimeListTemp = PrimeList;
-    for (Loop= 0; Loop < bufflen - 1; Loop++)  
+    for (Loop= 0; Loop < bufflen - 1; Loop++)
     {
-        HashCodeTemp = (unsigned char)(buffer[Loop]);  
+        HashCodeTemp = (unsigned char)(buffer[Loop]);
         PrimeListTemp->NextCodeWordInStringList->CodeWordID = HashCodeTemp;
-        
+
 																			/*********** Add to the list **********/
         PrimeListTemp->NextCodeWordInStringList->PreviousCodeWordInMatchList =EntryList[HashCodeTemp].PreviousCodeWordInMatchList;
         PrimeListTemp->NextCodeWordInStringList->NextCodeWordInMatchList = (CODEWORD*)&(EntryList[HashCodeTemp]);
@@ -237,7 +238,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
 
     				/*********** start T-decomposition ***********/
 
-    for (;;)  
+    for (;;)
     {
         if (PrimeList->NextCodeWordInStringList->NextCodeWordInStringList == NULL) /* Check if process has finished (i.e. if these is only one codeword in string) */
             break;
@@ -247,7 +248,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
 
          			/*********** (1)Get the T-prefix ********** */
         Node_Tprefix = PrimeListEnd->PreviousCodeWordInStringList;
-        pc_TprefixAddress = buffer + (Node_Tprefix - PrimeList) - 1;  
+        pc_TprefixAddress = buffer + (Node_Tprefix - PrimeList) - 1;
         TprefixLength = RealEndOfPrimeList - Node_Tprefix;
         HashCode_Tprefix = (Node_Tprefix->CodeWordID);
         HeadOfCurrentMatchList = Node_Tprefix->NextCodeWordInMatchList;  /*Point to the dummy head of the hash list.*/
@@ -256,22 +257,22 @@ double ftdSelAugment ( char *buffer, long bufflen)
         while (Node_Tprefix->PreviousCodeWordInStringList->PreviousCodeWordInStringList != NULL)
         {
             if (Node_Tprefix->PreviousCodeWordInMatchList == Node_Tprefix->PreviousCodeWordInStringList)
-            {  
+            {
                 Node_Tprefix = Node_Tprefix->PreviousCodeWordInStringList;
                 K++;
             }
             else
                 break;
         }
-        RealEndOfPrimeList = Node_Tprefix; 
-  
+        RealEndOfPrimeList = Node_Tprefix;
+
         Node_Tprefix->PreviousCodeWordInMatchList->NextCodeWordInMatchList = HeadOfCurrentMatchList;
         HeadOfCurrentMatchList->PreviousCodeWordInMatchList = Node_Tprefix->PreviousCodeWordInMatchList;
         Node_Tprefix->PreviousCodeWordInStringList->NextCodeWordInStringList = PrimeListEnd;
         PrimeListEnd->PreviousCodeWordInStringList = Node_Tprefix->PreviousCodeWordInStringList;
 
-        Complexity += log((double)(K + 1)); 
-        
+        Complexity += log((double)(K + 1));
+
         			/*********** (3)Search from the beginning of the match list to find the codeword that matches the T-prefix ***********/
         CodeWordInMatchList = HeadOfCurrentMatchList;  /*The head of the match list.*/
 
@@ -282,7 +283,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
                                                                              			/* once the new codeword does not mathc the T-prefix */
         																				/* Now search really begins from begining of corresponding match list */
         																				/* The match list helps to locate the codeword in the string list */
-        while (CodeWordInMatchList != HeadOfCurrentMatchList)  
+        while (CodeWordInMatchList != HeadOfCurrentMatchList)
         {
             PrimeListTemp = CodeWordInMatchList;
             Count_TprefixMatch = 1;  													/* number of adjacent  codewords matching the T-prefix */
@@ -291,10 +292,10 @@ double ftdSelAugment ( char *buffer, long bufflen)
 
             for (;;)  																	/* matched codeword found. Here we need remove some codewords from the match list and string list */
                         																/* New merged codeword will be added to the corresponding match list. Check in the string list */
-            {    
+            {
                 if (HashCode_Tprefix == PrimeListTemp->CodeWordID)
                 { 																		/* The current codeword DOES match the T-prefix */
-                    Count_TprefixMatch++;  
+                    Count_TprefixMatch++;
                     if (Count_TprefixMatch <= K)
                     {
                         PrimeListTemp = PrimeListTemp->NextCodeWordInStringList;
@@ -341,7 +342,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
                             TempEntry = NextAvailableEntry;
                             EntryList[TempEntry].PreviousCodeWordInMatchList = (CODEWORD*)(EntryList + TempEntry);
                             EntryList[TempEntry].CodeWordID= 0;
-                                
+
                             NextAvailableEntry++;
                         }
                         else
@@ -351,10 +352,10 @@ double ftdSelAugment ( char *buffer, long bufflen)
                     }
                     CodeWordBegin->CodeWordID = TempEntry;  							/* new ID */
                     { 																	/* if not the last node in the match list */
-                        PrimeListTemp->PreviousCodeWordInMatchList->NextCodeWordInMatchList = PrimeListTemp->NextCodeWordInMatchList; 
+                        PrimeListTemp->PreviousCodeWordInMatchList->NextCodeWordInMatchList = PrimeListTemp->NextCodeWordInMatchList;
                         PrimeListTemp->NextCodeWordInMatchList->PreviousCodeWordInMatchList = PrimeListTemp->PreviousCodeWordInMatchList;
                     }
-                    
+
 																						/*********** Add to the lists ***********/
                     CodeWordBegin->PreviousCodeWordInMatchList =EntryList[TempEntry].PreviousCodeWordInMatchList;
                     CodeWordBegin->NextCodeWordInMatchList = (CODEWORD*)(&(EntryList[TempEntry]));
@@ -363,7 +364,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
 																						/****************************************/
                     CodeWordBegin->NextCodeWordInStringList = PrimeListTemp->NextCodeWordInStringList;
                     PrimeListTemp->NextCodeWordInStringList->PreviousCodeWordInStringList = CodeWordBegin;
-                
+
                     break;
                 }
             }																			/* end of for (;;) */
@@ -385,7 +386,7 @@ double ftdSelAugment ( char *buffer, long bufflen)
 /******************* main *********************/
 int main(int argc, char *argv[]) {
 
-  int Loop, DataOut=FALSE ; 
+  int Loop, DataOut=FALSE ;
   long	i, offset;
   long	Window = 0, Shift;
   float Scale=1.0;
@@ -415,8 +416,8 @@ int main(int argc, char *argv[]) {
 			return 0;
 		}
 		else if ((strcmp(argv[Loop], "-f") == 0) || (strcmp(argv[Loop], "-F")== 0 )){
-			  FromFile = TRUE;     
-			  if (argc > (Loop+1)) {      
+			  FromFile = TRUE;
+			  if (argc > (Loop+1)) {
 				FileName = argv[Loop + 1];
 				Loop++;
 			  }
@@ -430,7 +431,7 @@ int main(int argc, char *argv[]) {
 		  Comp = TRUE; Info = Entropy = FALSE;
 		}
 		else if (strcmp(argv[Loop], "-i") == 0)  { /*output T-information */
-		  Info = TRUE; Entropy = Comp=FALSE; 
+		  Info = TRUE; Entropy = Comp=FALSE;
 		}
 		else if (strcmp(argv[Loop], "-e") == 0)  { /*output T-information */
 		  Entropy = TRUE;
@@ -451,13 +452,13 @@ int main(int argc, char *argv[]) {
 		else if (strcmp(argv[Loop], "-um") == 0)  { /*milli-range */
 		  Scale=1000.0;
 		}
-		else if (strcmp(argv[Loop], "-w") == 0) {  
-		  sscanf(argv[Loop + 1], "%d", &Window);
+		else if (strcmp(argv[Loop], "-w") == 0) {
+		  sscanf(argv[Loop + 1], "%ld", &Window);
 		  Loop++;
-		  sscanf(argv[Loop + 1], "%d", &Shift);
+		  sscanf(argv[Loop + 1], "%ld", &Shift);
 		  Loop++;
 		}
-		else if (strcmp(argv[Loop], "-xyz") == 0) {   
+		else if (strcmp(argv[Loop], "-xyz") == 0) {
 		  sscanf(argv[Loop + 1], "%f", &xscale);
 		  Loop++;
 		  sscanf(argv[Loop + 1], "%f", &yscale);
@@ -472,8 +473,8 @@ int main(int argc, char *argv[]) {
 		  Loop++;
 		}
     }
-    
- 	if (FromFile == TRUE) { 
+
+ 	if (FromFile == TRUE) {
 	  	struct stat stbuf;
 
 	  	if (stat(FileName, &stbuf) == -1) return(-1);
@@ -485,43 +486,43 @@ int main(int argc, char *argv[]) {
 			else if (Shift > Window) Shift = Window;
 
 
-			
-			
-			if (Normalise == TRUE) {loglength = (float)(log(Window)/log(10)); reference = V[0]+(V[1] +(V[2]+(V[3]+(V[4]+ (V[5] +V[6]*loglength)*loglength)*loglength)*loglength)*loglength)*loglength; 
+
+
+			if (Normalise == TRUE) {loglength = (float)(log(Window)/log(10)); reference = V[0]+(V[1] +(V[2]+(V[3]+(V[4]+ (V[5] +V[6]*loglength)*loglength)*loglength)*loglength)*loglength)*loglength;
 				if (Binary) reference=reference/(float)log(2.0);
 			}
 			else reference = 1.0;
-			
+
 
 			Dynamics = (char *)malloc(DataLen);
 			f = fopen(FileName, "r");
 			fread(Dynamics, 1, DataLen, f);
 			fclose(f);
-			
-		
+
+
 			HashTableSize = DataLen + 255;
 			EntryList = (MATCHLISTENTRY*) malloc(sizeof (MATCHLISTENTRY) * HashTableSize);
 			PrimeList = (CODEWORD *)malloc ((DataLen + 2) * sizeof (CODEWORD)); /* two extra nodes, head, end nodes in string list. */
-				
+
 			if ((EntryList == NULL) || (PrimeList == NULL) || (Dynamics == NULL) ) {printf("Error Allocating Memory for linked list\n"); return -1;}
-			
-			
+
+
 
 			if ((DataLen-Window)/Shift > 1.0) {
 				i = offset = 0;
 				while (offset <= DataLen-Window) {offset+=Shift; i++;}
-				printf ("Y:g:graph\n%d 1\n%f %f %f\n%f %f %f\n", i ,xscale, yscale ,zscale , xoffset, yoffset, zoffset);
+				printf ("Y:g:graph\n%ld 1\n%f %f %f\n%f %f %f\n", i ,xscale, yscale ,zscale , xoffset, yoffset, zoffset);
 			}
 
-			offset = 0; 			
+			offset = 0;
 			while (offset <= DataLen-Window) {
 				Complexity = ftdSelAugment(&Dynamics[offset], Window);
 
-				if ((Comp == FALSE) && (Info == FALSE) && (Entropy == FALSE) ) printf("%.2f %.2f %.5f\n", Complexity, Scale*Information, Scale*(Information=invlogint(Complexity))/Window/reference); 
+				if ((Comp == FALSE) && (Info == FALSE) && (Entropy == FALSE) ) printf("%.2f %.2f %.5f\n", Complexity, Scale*Information, Scale*(Information=invlogint(Complexity))/Window/reference);
 				else if (Comp == TRUE) printf("%.2f ", Complexity );
 				else if (Info == TRUE) printf("%.2f ", Scale*invlogint(Complexity) );
 				else if (Entropy == TRUE) printf("%.5f ", Scale*invlogint(Complexity)/Window/reference );
-				offset+=Shift; 
+				offset+=Shift;
 			}
 			printf ("\n");
 
@@ -553,6 +554,3 @@ void releaseQtc() {
     free (EntryList);EntryList = 0;
   }
 }
-  
-
-
