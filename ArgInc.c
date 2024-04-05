@@ -3,14 +3,14 @@
 	Routines for scanning arguments passed
 
 	Written by:	Scott Wackrow
-	Date:		Dec 1994	
-	Modified:		May 1995		FindTree, added for optional loading of 
+	Date:		Dec 1994
+	Modified:		May 1995		FindTree, added for optional loading of
 						the complexity tree
 
 ***************************************************************************************
 FindFile:		syntax:	FindFile (  ArgumentCount, ArgumentList, StringPointer )
 
-		accepts:	a count of arguments in the list and a pointer to the start 
+		accepts:	a count of arguments in the list and a pointer to the start
 			of an array of pointers to arrays of characters (strings) and
 			a pointer to the default file name
 
@@ -23,7 +23,7 @@ FindFile:		syntax:	FindFile (  ArgumentCount, ArgumentList, StringPointer )
 
 FindTree:		syntax:	FindTree (  ArgumentCount, ArgumentList, StringPointer )
 
-		accepts:	a count of arguments in the list and a pointer to the start 
+		accepts:	a count of arguments in the list and a pointer to the start
 			of an array of pointers to arrays of characters (strings) and
 			a pointer to the default tree name
 
@@ -72,7 +72,7 @@ ShowHelp:	syntax:	ShowHelp ( ArgumentCount, ArgumentList, StringPointer, Boolean
 		returns:	nothing
 
 		********************************************
-		
+
 ShowHeadings:	syntax:	ShowHeading(argc, argv)
 
 
@@ -83,7 +83,7 @@ ShowHeadings:	syntax:	ShowHeading(argc, argv)
 			to null
 
 		returns:	if found returns true, if not returns false
-	
+
 **************************************************************************************/
 char *FindFile (  int, char	**, char *);
 char *FindTree (  int, char	**, char *);
@@ -98,13 +98,10 @@ int ShowHeading(int, char **);
 
 
 
-char *FindFile (  argc, argv, string)
-int	argc;
-char	*argv[];
-char	*string;
+char *FindFile (int	argc, char	*argv[], char	*string)
 {
-int 	i;
-char	*file = NULL;
+	int 	i;
+	char	*file = NULL;
 
 	for ( i=0; i < argc; i++ ) {							/*  search arguments for parameters */
 		if (argv[i] != NULL) {							/* don't use null values */
@@ -134,10 +131,7 @@ char	*file = NULL;
 
 /*************************************************************************************/
 
-char *FindTree (  argc, argv, string)
-int	argc;
-char	*argv[];
-char	*string;
+char *FindTree (int	argc, char	*argv[], char	*string)
 {
 int 	i;
 char	*tree = NULL;
@@ -169,12 +163,10 @@ char	*tree = NULL;
 
 /*************************************************************************************/
 
-long int FindNumber (  argc, argv, letr )
-int	argc;
-char *argv[], letr;
+long int FindNumber ( int	argc, char *argv[], char letr)
 {
-long int	i;
-char	*number = NULL;
+  long int	i;
+  char	*number = NULL;
 
 	for ( i=0; i < argc; i++ ) {							/*  search arguments for parameters */
 		if (argv[i] != NULL) {							/* don't use null values */
@@ -248,7 +240,7 @@ int ShowHeading(argc, argv)
 int argc;
 char *argv[];
 {
-int i, show = FALSE;
+  int i, show = FALSE;
 
 	for ( i=0; i < argc; i++ ) {							/*  search arguments for parameters */
 		if (argv[i] != NULL) {							/* don't use null values */
