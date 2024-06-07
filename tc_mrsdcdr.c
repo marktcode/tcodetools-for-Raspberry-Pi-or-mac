@@ -74,7 +74,7 @@ char *letterlist[] = {
 "B",
 "6",
 "-",
-"=",
+"\n=\n",
 "X",
 "/",
 "K",
@@ -243,12 +243,12 @@ void Postorder(struct MorseNode *NodePtr)
 */
 
 struct MorseNode* dit(struct MorseNode *NodePtr) {
-		if (NodePtr->leftPtr == NULL)  return NodePtr; // fudge  how is it that the tree ends up with a 0x3030 ?
+		if (NodePtr->leftPtr == NULL)  return NodePtr; 
 		else return (NodePtr->leftPtr);
 }
 
 struct MorseNode* dah(struct MorseNode *NodePtr) {
-		if (NodePtr->rightPtr == NULL)  return NodePtr; // fudge how is it that the tree ends up with a 0x3030 ?
+		if (NodePtr->rightPtr == NULL)  return NodePtr; 
 		else return (NodePtr->rightPtr);
 }
 
@@ -291,7 +291,7 @@ int optopt = '?';
 int ii = 0;
 int	retflg = 0;
 
-int ring[10];
+int ring[20];
  //set up a dynamic pointer to tree nodes
  	struct MorseNode *pointer = NULL;
 	struct MorseNode *treePtr = NULL;   // root node for tree
@@ -346,7 +346,7 @@ void processring(int deplncode) {
 			retflg = 0; pointer = dah(pointer);
 		}
 			
-		ii=(ii+1) % 10; // increment ring counter
+		ii=(ii+1) % 20; // increment ring counter
 	}
 }
 
